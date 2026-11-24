@@ -255,9 +255,9 @@
   .seg input[type="date"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; padding: 0; margin: 0; -webkit-appearance: none; appearance: none; cursor: pointer; }
   .sheet .primary { margin-top: 18px; }
   .mode { margin: 4px 0 2px; }
-  .sheet[data-mode="income"] .only-exp, .sheet[data-mode="income"] .only-rec,
-  .sheet[data-mode="expense"] .only-rec, .sheet[data-mode="expense"] .only-inc,
-  .sheet[data-mode="recurring"] .not-rec, .sheet[data-mode="recurring"] .only-inc { display: none; }
+  .sheet[data-mode="income"] .no-inc, .sheet[data-mode="income"] .only-rec,
+  .sheet[data-mode="expense"] .only-rec,
+  .sheet[data-mode="recurring"] .not-rec { display: none; }
   .sheet[data-mode="income"] .amount-box input { color: var(--down); }
   .daysel { appearance: none; -webkit-appearance: none; }
   .rec-hint { font-size: 13px; color: var(--muted); margin: 8px 2px 0; }
@@ -455,11 +455,6 @@
     <button type="button" class="close" id="f-close" aria-label="Закрыть">✕</button>
   </div>
   <form id="add-form" novalidate>
-    <div class="seg mode" id="f-mode" role="group" aria-label="Что добавляем">
-      <button type="button" data-mode="expense" aria-pressed="true">Расход</button>
-      <button type="button" data-mode="income" aria-pressed="false">Доход</button>
-      <button type="button" data-mode="recurring" aria-pressed="false">Регулярный</button>
-    </div>
     <div id="f-amount-field">
       <label class="amount-box" for="f-amount">
         <input id="f-amount" class="num" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Сумма в тенге">
@@ -473,8 +468,8 @@
     <label class="sec-label" for="f-merchant" id="f-merchant-label">Где или что</label>
     <input id="f-merchant" class="text-in" autocomplete="off" placeholder="Magnum, такси, обед">
 
-    <span class="sec-label only-exp only-rec" id="f-cats-label">Категория</span>
-    <div class="cat-strip only-exp only-rec" id="f-cats" role="group" aria-labelledby="f-cats-label"></div>
+    <span class="sec-label no-inc" id="f-cats-label">Категория</span>
+    <div class="cat-strip no-inc" id="f-cats" role="group" aria-labelledby="f-cats-label"></div>
 
     <label class="sec-label only-rec" for="f-day">Какого числа списывается</label>
     <select class="text-in daysel only-rec" id="f-day"></select>
@@ -515,7 +510,7 @@
   const APP = 'https://script.google.com/macros/s/AKfycbyezmLrGO8JE5nwWESKBgO19HRYjA0xRVgSib6g2K-QFl-wEG5MbZSO07eEWcaRSOa23g/exec';
   const STORE = 'expenses-key';
   // Версия страницы: менять при каждой публикации, чтобы iPhone подтянул обновление сам
-  const VERSION = '10';
+  const VERSION = '11';
 
   // iPhone держит приложение с экрана «Домой» в памяти. Сверяем версию с сайтом и перезагружаемся, если вышла новая.
   async function checkUpdate() {
@@ -1004,7 +999,6 @@
     $('f-merchant-label').textContent = M.label;
     $('f-merchant').placeholder = M.ph;
     $('f-submit').textContent = M.btn;
-    $('f-mode').querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
     recHint();
   }
   function recHint() {
@@ -1014,7 +1008,6 @@
   }
   $('f-day').innerHTML = [...Array(31)].map((_, i) => '<option value="' + (i + 1) + '">' + (i + 1) + '-е число</option>').join('');
   $('f-day').addEventListener('change', recHint);
-  $('f-mode').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
   function openSheet(mode) {
     fCat = '';
     $('f-day').value = String(today.getDate());
