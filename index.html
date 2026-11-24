@@ -36,7 +36,7 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.4;
-    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: clip; }
   button, input, select { font: inherit; color: inherit; }
   button { cursor: pointer; }
   .num { font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
@@ -46,19 +46,19 @@
   /* ===== Каркас ===== */
   .app { max-width: 1120px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 104px); display: none; }
   .app.ready { display: block; }
-  .grid { display: grid; gap: 14px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
   @media (min-width: 900px) {
-    .grid { grid-template-columns: 1.15fr 1fr; align-items: start; gap: 18px; }
+    .grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; gap: 18px; }
     .col { display: grid; gap: 18px; }
   }
   @media (max-width: 899px) { .col { display: contents; } }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow); }
+  .card { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow); }
   .card h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0; }
   .card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; min-height: 44px; }
 
   /* ===== Шапка ===== */
   .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
+  .brand { min-width: 0; white-space: nowrap; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
   .brand img { width: 32px; height: 32px; border-radius: 9px; }
   .month-nav { display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
   .month-nav b { min-width: 118px; text-align: center; font-weight: 600; font-size: 15px; text-transform: capitalize; }
@@ -85,9 +85,9 @@
   .banner span { color: var(--muted); font-size: 14px; }
 
   /* ===== Календарь ===== */
-  .cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+  .cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
   .cal-week span { text-align: center; font-size: 12px; color: var(--muted); font-weight: 500; }
-  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
   .day { position: relative; min-height: 54px; aspect-ratio: 1 / 1.08; border-radius: 12px; border: 1px solid transparent; padding: 6px 4px 5px;
     display: flex; flex-direction: column; justify-content: space-between; align-items: center;
     background: color-mix(in oklab, var(--accent) var(--heat, 0%), var(--surface-2)); transition: transform .12s, border-color .15s, background .2s; }
@@ -128,7 +128,7 @@
   .week-total .big { font-size: 34px; font-weight: 800; letter-spacing: -.03em; }
   .delta { font-size: 14px; font-weight: 600; }
   .delta.up { color: var(--up); } .delta.down { color: var(--down); }
-  .bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 120px; margin: 18px 0 6px; }
+  .bars { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; height: 120px; margin: 18px 0 6px; }
   .bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; border: 0; background: none; padding: 0; min-height: 44px; }
   .bar i { display: block; width: 100%; max-width: 34px; border-radius: 8px 8px 4px 4px; background: var(--surface-2); min-height: 4px;
     transition: height .5s cubic-bezier(.2,.8,.2,1), background .2s; }
@@ -137,20 +137,20 @@
   .bar.sel i { outline: 2px solid var(--ink); outline-offset: 2px; }
   .bar span { font-size: 12px; color: var(--muted); }
   .bar:hover i { filter: brightness(1.08); }
-  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
-  .fact { background: var(--surface-2); border-radius: var(--r-md); padding: 12px; }
+  .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+  .fact { min-width: 0; background: var(--surface-2); border-radius: var(--r-md); padding: 12px; }
   .fact small { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-  .fact b { font-weight: 700; font-size: 15px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fact b { font-weight: 700; font-size: 15px; display: block; overflow-wrap: anywhere; }
   .tips { margin-top: 16px; display: grid; gap: 8px; }
   .tips h3 { font-size: 15px; margin: 0 0 2px; font-weight: 700; }
-  .tip { display: flex; gap: 12px; padding: 12px; border-radius: var(--r-md); border: 1px solid var(--line); }
+  .tip { min-width: 0; overflow-wrap: anywhere; display: flex; gap: 12px; padding: 12px; border-radius: var(--r-md); border: 1px solid var(--line); }
   .tip .ti { font-size: 20px; line-height: 1.2; }
   .tip p { margin: 0; font-size: 14px; }
   .tip .save { display: inline-block; margin-top: 6px; font-size: 12.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 999px; }
   .badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
 
   /* ===== Категории ===== */
-  .cat { display: grid; grid-template-columns: 42px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; }
+  .cat { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 8px 0; }
   .cat .top-line { display: flex; justify-content: space-between; gap: 8px; font-size: 14.5px; font-weight: 600; }
   .cat .pct { color: var(--muted); font-weight: 500; font-size: 13px; }
   .track { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin-top: 6px; }
@@ -207,6 +207,32 @@
   .app.ready .card { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; }
   .app.ready .card:nth-child(2) { animation-delay: .05s; } .app.ready .card:nth-child(3) { animation-delay: .1s; }
 
+
+  /* ===== Телефон ===== */
+  @media (max-width: 480px) {
+    .app { padding-left: 12px; padding-right: 12px; }
+    .card { padding: 16px 14px; border-radius: 20px; }
+    .brand { font-size: 0; gap: 0; }            /* на телефоне оставляем только иконку */
+    .month-nav b { min-width: 0; padding: 0 4px; font-size: 15px; }
+    .hero .total { font-size: 40px; }
+    .chip { font-size: 12.5px; padding: 6px 10px; }
+    .cal, .cal-week { gap: 4px; }
+    .day { min-height: 46px; aspect-ratio: auto; border-radius: 10px; padding: 6px 2px 5px; }
+    .day .d { font-size: 13px; }
+    .day .a { font-size: 9.5px; letter-spacing: -.02em; }
+    .week-total .big { font-size: 30px; }
+    .bars { height: 96px; gap: 6px; }
+    .facts { gap: 6px; }
+    .fact { padding: 10px; }
+    .fact b { font-size: 14px; }
+    .row { gap: 10px; }
+    .ico { width: 38px; height: 38px; font-size: 18px; }
+    .fab { height: 52px; }
+  }
+  @media (max-width: 350px) {
+    .day .a { display: none; }
+    .hero .total { font-size: 34px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
