@@ -215,12 +215,12 @@
   .sec-label { display: block; font-size: 13px; color: var(--muted); margin: 14px 2px 8px; font-weight: 600; }
   .text-in { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: var(--r-md); padding: 12px 14px; min-height: 50px; font-size: 16px; }
   .text-in:focus { outline: 0; border-color: var(--accent); }
-  .cat-strip { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 4px; scroll-snap-type: x proximity; scrollbar-width: none; }
-  .cat-strip::-webkit-scrollbar { display: none; }
-  .ctile { flex: none; width: 76px; min-height: 72px; border-radius: 16px; border: 1px solid var(--line); background: var(--bg); scroll-snap-align: start;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; font-weight: 500; padding: 8px 4px;
+  .cat-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .ctile { min-width: 0; min-height: 64px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 8px 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     transition: transform .12s, background .15s, border-color .15s; }
-  .ctile b { font-size: 24px; line-height: 1; font-weight: 400; }
+  .ctile b { font-size: 22px; line-height: 1; font-weight: 400; }
   .ctile:active { transform: scale(.94); }
   .ctile[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); box-shadow: inset 0 0 0 1px var(--accent); }
   .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md); }
@@ -429,7 +429,7 @@
   const APP = 'https://script.google.com/macros/s/AKfycbyezmLrGO8JE5nwWESKBgO19HRYjA0xRVgSib6g2K-QFl-wEG5MbZSO07eEWcaRSOa23g/exec';
   const STORE = 'expenses-key';
   // Версия страницы: менять при каждой публикации, чтобы iPhone подтянул обновление сам
-  const VERSION = '7';
+  const VERSION = '8';
 
   // iPhone держит приложение с экрана «Домой» в памяти. Сверяем версию с сайтом и перезагружаемся, если вышла новая.
   async function checkUpdate() {
@@ -455,6 +455,7 @@
     'Развлечения': { e: '🎬', c: '#c9a227' },
     'Другое':      { e: '📦', c: '#8a8a84' },
   };
+  const SHORT = { 'Развлечения': 'Досуг', 'Транспорт': 'Транспорт' };
   const catOf = n => CAT[n] || CAT['Другое'];
 
   const $ = id => document.getElementById(id);
@@ -805,8 +806,7 @@
   function openSheet() {
     fCat = '';
     $('f-cats').innerHTML = '<button type="button" class="ctile" aria-pressed="true" data-c=""><b>✨</b>Авто</button>' +
-      S.cats.map(c => '<button type="button" class="ctile" aria-pressed="false" data-c="' + esc(c) + '"><b>' + catOf(c).e + '</b>' + esc(c) + '</button>').join('');
-    $('f-cats').scrollLeft = 0;
+      S.cats.map(c => '<button type="button" class="ctile" aria-pressed="false" data-c="' + esc(c) + '" aria-label="' + esc(c) + '"><b>' + catOf(c).e + '</b>' + esc(SHORT[c] || c) + '</button>').join('');
     $('f-date').max = iso(today);
     setWhen(S.sel > today ? today : S.sel);
     $('f-amount').value = ''; sizeAmount(); $('f-merchant').value = ''; $('f-amount-field').classList.remove('bad-amount');
