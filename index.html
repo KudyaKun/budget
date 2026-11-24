@@ -192,11 +192,45 @@
   .fab:active { transform: scale(.95); }
   .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30; }
   .scrim.open { opacity: 1; pointer-events: auto; }
-  .sheet { position: fixed; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; background: var(--surface); border-radius: 24px 24px 0 0;
-    padding: 10px 18px calc(env(safe-area-inset-bottom) + 18px); transform: translateY(105%); transition: transform .28s cubic-bezier(.2,.8,.2,1); z-index: 31; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto; background: var(--surface); border-radius: 26px 26px 0 0;
+    padding: 8px 16px calc(env(safe-area-inset-bottom) + 16px); transform: translateY(105%); transition: transform .28s cubic-bezier(.2,.8,.2,1); z-index: 31;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .sheet::-webkit-scrollbar { display: none; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .sheet-head h3 { margin: 0; font-size: 20px; letter-spacing: -.01em; }
+  .close { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--surface-2); color: var(--muted); font-size: 16px; display: grid; place-items: center; }
+  .close:active { transform: scale(.92); }
+  .amount-box { display: flex; align-items: baseline; justify-content: center; gap: 6px; padding: 18px 0 6px; cursor: text; }
+  .amount-box input { border: 0; outline: 0; background: transparent; padding: 0; margin: 0; text-align: right; width: 1.2ch; min-width: 1.2ch; max-width: 80%;
+    font-size: 52px; font-weight: 800; letter-spacing: -.03em; caret-color: var(--accent); }
+  .amount-box input::placeholder { color: var(--muted); opacity: .45; }
+  .amount-box span { font-size: 40px; font-weight: 700; color: var(--muted); }
+  .amount-line { height: 2px; width: 60%; margin: 0 auto 4px; border-radius: 2px; background: var(--line); transition: background .2s; }
+  .amount-box:focus-within + .amount-line { background: var(--accent); }
+  .amount-err { text-align: center; color: var(--up); font-size: 13px; min-height: 18px; margin-bottom: 8px; visibility: hidden; }
+  .bad-amount .amount-err { visibility: visible; }
+  .bad-amount .amount-line { background: var(--up); }
+  .bad-amount .amount-box { animation: shake .35s; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .sec-label { display: block; font-size: 13px; color: var(--muted); margin: 14px 2px 8px; font-weight: 600; }
+  .text-in { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: var(--r-md); padding: 12px 14px; min-height: 50px; font-size: 16px; }
+  .text-in:focus { outline: 0; border-color: var(--accent); }
+  .cat-strip { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 4px; scroll-snap-type: x proximity; scrollbar-width: none; }
+  .cat-strip::-webkit-scrollbar { display: none; }
+  .ctile { flex: none; width: 76px; min-height: 72px; border-radius: 16px; border: 1px solid var(--line); background: var(--bg); scroll-snap-align: start;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; font-weight: 500; padding: 8px 4px;
+    transition: transform .12s, background .15s, border-color .15s; }
+  .ctile b { font-size: 24px; line-height: 1; font-weight: 400; }
+  .ctile:active { transform: scale(.94); }
+  .ctile[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); box-shadow: inset 0 0 0 1px var(--accent); }
+  .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md); }
+  .seg button, .seg label { position: relative; min-height: 42px; border: 0; border-radius: 10px; background: transparent; font-size: 14px; font-weight: 600;
+    color: var(--muted); display: grid; place-items: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 6px; cursor: pointer; }
+  .seg [aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .seg input[type="date"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; padding: 0; margin: 0; -webkit-appearance: none; appearance: none; cursor: pointer; }
+  .sheet .primary { margin-top: 18px; }
   .sheet.open { transform: none; }
-  .grab { width: 40px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto 14px; }
-  .sheet h3 { margin: 0 0 14px; font-size: 20px; }
+  .grab { width: 40px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto 10px; }
   .field { margin-bottom: 12px; }
   .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
   .field input { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: var(--r-sm); padding: 12px 14px; min-height: 48px; font-size: 16px; }
@@ -357,25 +391,33 @@
 <div class="scrim" id="scrim"></div>
 <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" aria-hidden="true">
   <div class="grab"></div>
-  <h3 id="sheet-title">Новая трата</h3>
+  <div class="sheet-head">
+    <h3 id="sheet-title">Новая трата</h3>
+    <button type="button" class="close" id="f-close" aria-label="Закрыть">✕</button>
+  </div>
   <form id="add-form" novalidate>
-    <div class="field" id="f-amount-field">
-      <label for="f-amount">Сумма, ₸</label>
-      <input id="f-amount" class="amount-in num" inputmode="decimal" autocomplete="off">
-      <div class="err">Введите сумму больше нуля</div>
+    <div id="f-amount-field">
+      <label class="amount-box" for="f-amount">
+        <input id="f-amount" class="num" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Сумма в тенге">
+        <span aria-hidden="true">₸</span>
+      </label>
+      <div class="amount-line"></div>
+      <div class="amount-err" role="alert">Введите сумму больше нуля</div>
     </div>
-    <div class="field">
-      <label for="f-merchant">Где или что</label>
-      <input id="f-merchant" autocomplete="off" placeholder="Magnum, такси, обед">
+
+    <label class="sec-label" for="f-merchant">Где или что</label>
+    <input id="f-merchant" class="text-in" autocomplete="off" placeholder="Magnum, такси, обед">
+
+    <span class="sec-label" id="f-cats-label">Категория</span>
+    <div class="cat-strip" id="f-cats" role="group" aria-labelledby="f-cats-label"></div>
+
+    <span class="sec-label" id="f-date-label">Когда</span>
+    <div class="seg" id="f-when" role="group" aria-labelledby="f-date-label">
+      <button type="button" data-when="0" aria-pressed="true">Сегодня</button>
+      <button type="button" data-when="1" aria-pressed="false">Вчера</button>
+      <label aria-pressed="false" id="f-other"><span id="f-other-text">Другой день</span><input id="f-date" type="date" aria-label="Выбрать дату"></label>
     </div>
-    <div class="field">
-      <label>Категория</label>
-      <div class="pills" id="f-cats"></div>
-    </div>
-    <div class="field">
-      <label for="f-date">Дата</label>
-      <input id="f-date" type="date">
-    </div>
+
     <button class="primary" type="submit" id="f-submit">Сохранить трату</button>
   </form>
 </section>
@@ -387,7 +429,7 @@
   const APP = 'https://script.google.com/macros/s/AKfycbyezmLrGO8JE5nwWESKBgO19HRYjA0xRVgSib6g2K-QFl-wEG5MbZSO07eEWcaRSOa23g/exec';
   const STORE = 'expenses-key';
   // Версия страницы: менять при каждой публикации, чтобы iPhone подтянул обновление сам
-  const VERSION = '6';
+  const VERSION = '7';
 
   // iPhone держит приложение с экрана «Домой» в памяти. Сверяем версию с сайтом и перезагружаемся, если вышла новая.
   async function checkUpdate() {
@@ -750,38 +792,65 @@
   });
 
   // ===== Шторка добавления =====
-  let fCat = '';
+  let fCat = '', fDay = today;
+  const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function sizeAmount() { const v = $('f-amount').value; $('f-amount').style.width = Math.max(1.2, v.length * .62 + .3) + 'em'; }
+  function setWhen(d) {
+    fDay = startOfDay(d);
+    const k = +fDay === +today ? '0' : +fDay === +addDays(today, -1) ? '1' : 'x';
+    $('f-when').querySelectorAll('[data-when], #f-other').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.when === k || (k === 'x' && b.id === 'f-other'))));
+    $('f-other-text').textContent = k === 'x' ? fDay.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '') : 'Другой день';
+    $('f-date').value = iso(fDay);
+  }
   function openSheet() {
     fCat = '';
-    $('f-cats').innerHTML = '<button type="button" class="pill" aria-pressed="true" data-c="">✨ Авто</button>' +
-      S.cats.map(c => '<button type="button" class="pill" aria-pressed="false" data-c="' + esc(c) + '">' + catOf(c).e + ' ' + esc(c) + '</button>').join('');
-    const d = S.sel > today ? today : S.sel;
-    $('f-date').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    $('f-date').max = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-    $('f-amount').value = ''; $('f-merchant').value = ''; $('f-amount-field').classList.remove('bad');
+    $('f-cats').innerHTML = '<button type="button" class="ctile" aria-pressed="true" data-c=""><b>✨</b>Авто</button>' +
+      S.cats.map(c => '<button type="button" class="ctile" aria-pressed="false" data-c="' + esc(c) + '"><b>' + catOf(c).e + '</b>' + esc(c) + '</button>').join('');
+    $('f-cats').scrollLeft = 0;
+    $('f-date').max = iso(today);
+    setWhen(S.sel > today ? today : S.sel);
+    $('f-amount').value = ''; sizeAmount(); $('f-merchant').value = ''; $('f-amount-field').classList.remove('bad-amount');
     $('scrim').classList.add('open'); $('sheet').classList.add('open'); $('sheet').setAttribute('aria-hidden', 'false');
     setTimeout(() => $('f-amount').focus(), 250);
   }
-  function closeSheet() { $('scrim').classList.remove('open'); $('sheet').classList.remove('open'); $('sheet').setAttribute('aria-hidden', 'true'); $('fab').focus(); }
+  function closeSheet() { document.activeElement && document.activeElement.blur(); $('scrim').classList.remove('open'); $('sheet').classList.remove('open'); $('sheet').setAttribute('aria-hidden', 'true'); }
   $('fab').onclick = openSheet;
   $('scrim').onclick = closeSheet;
+  $('f-close').onclick = closeSheet;
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('sheet').classList.contains('open')) closeSheet(); });
+  // сумма: только цифры и одна запятая, разряды через пробел
+  $('f-amount').addEventListener('input', () => {
+    let v = $('f-amount').value.replace(/[^\d.,]/g, '').replace('.', ',');
+    const [int, ...rest] = v.split(',');
+    const dec = rest.length ? ',' + rest.join('').slice(0, 2) : '';
+    $('f-amount').value = (int.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ')) + dec;
+    $('f-amount-field').classList.remove('bad-amount');
+    sizeAmount();
+  });
   $('f-cats').addEventListener('click', e => {
-    const b = e.target.closest('.pill'); if (!b) return;
+    const b = e.target.closest('.ctile'); if (!b) return;
     fCat = b.dataset.c;
-    $('f-cats').querySelectorAll('.pill').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('f-cats').querySelectorAll('.ctile').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  });
+  $('f-when').addEventListener('click', e => {
+    const b = e.target.closest('[data-when]'); if (!b) return;
+    setWhen(addDays(today, -Number(b.dataset.when)));
+  });
+  $('f-date').addEventListener('change', () => {
+    const [y, m, d] = $('f-date').value.split('-').map(Number);
+    if (y) setWhen(new Date(Math.min(+new Date(y, m - 1, d), +today)));
   });
   $('add-form').addEventListener('submit', async e => {
     e.preventDefault();
     const amount = parseFloat($('f-amount').value.replace(/\s/g, '').replace(',', '.'));
-    if (!(amount > 0)) { $('f-amount-field').classList.add('bad'); $('f-amount').focus(); return; }
-    $('f-amount-field').classList.remove('bad');
-    const [yy, mm, dd] = $('f-date').value.split('-').map(Number);
+    if (!(amount > 0)) {
+      const f = $('f-amount-field'); f.classList.remove('bad-amount'); void f.offsetWidth; f.classList.add('bad-amount'); $('f-amount').focus(); return;
+    }
     const now = new Date();
-    const when = (yy ? new Date(yy, mm - 1, dd, now.getHours(), now.getMinutes()) : now);
-    $('f-submit').disabled = true;
+    const when = +fDay === +today ? now : new Date(fDay.getFullYear(), fDay.getMonth(), fDay.getDate(), 12, 0);
+    $('f-submit').disabled = true; $('f-submit').textContent = 'Сохраняю…';
     await act({ action: 'add', amount: amount, merchant: $('f-merchant').value.trim(), category: fCat, date: when.getTime() }, 'Трата сохранена');
-    $('f-submit').disabled = false;
+    $('f-submit').disabled = false; $('f-submit').textContent = 'Сохранить трату';
     closeSheet();
   });
 
