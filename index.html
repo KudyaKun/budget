@@ -57,18 +57,23 @@
   .card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; min-height: 44px; }
 
   /* ===== Шапка ===== */
-  .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
-  .brand { min-width: 0; white-space: nowrap; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
-  .brand img { width: 32px; height: 32px; border-radius: 9px; }
-  .month-nav { display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
-  .month-nav b { min-width: 118px; text-align: center; font-weight: 600; font-size: 15px; text-transform: capitalize; }
+  .top { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin: 8px 2px 16px; }
+  .page-title { margin: 0; min-width: 0; }
+  .page-title small { display: block; font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .02em; margin-bottom: 2px; }
+  .page-title b { display: block; font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; text-transform: capitalize; white-space: nowrap; }
+  .page-title b span { color: var(--muted); font-weight: 600; }
+  .month-nav { display: flex; align-items: center; gap: 6px; }
+  .month-nav .icon-btn { background: var(--surface); border: 1px solid var(--line); }
+  .month-nav .icon-btn:disabled { opacity: .35; }
   .icon-btn { width: 44px; height: 44px; border-radius: 999px; border: 0; background: transparent; display: grid; place-items: center; font-size: 20px;
     transition: background .15s, transform .12s; }
-  .icon-btn:hover { background: var(--surface-2); }
+  @media (hover: hover) { .icon-btn:hover { background: var(--surface-2); } }
   .icon-btn:active { transform: scale(.92); }
 
   /* ===== Итог месяца ===== */
-  .hero { position: relative; overflow: hidden; background: var(--accent); color: var(--accent-ink); border: 0; }
+  .hero { position: relative; overflow: hidden; color: var(--accent-ink); border: 0;
+    background: radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--accent) 70%, #fff) 0%, transparent 55%),
+                linear-gradient(160deg, var(--accent), color-mix(in oklab, var(--accent) 78%, #000)); }
   .hero .label { font-size: 14px; opacity: .8; }
   .hero .total { font-size: clamp(40px, 11vw, 56px); font-weight: 800; line-height: 1.05; margin: 6px 0 14px; letter-spacing: -.03em; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -79,7 +84,7 @@
   .banner { display: none; width: 100%; text-align: left; align-items: center; gap: 12px; padding: 14px 16px; min-height: 56px; border-radius: var(--r-md);
     border: 1px solid var(--line); background: var(--surface); margin-bottom: 14px; box-shadow: var(--shadow); transition: transform .15s; }
   .banner.show { display: flex; }
-  .banner:hover { transform: translateY(-2px); }
+  @media (hover: hover) { .banner:hover { transform: translateY(-2px); } }
   .banner .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex: none; box-shadow: 0 0 0 5px var(--accent-soft); }
   .banner b { font-weight: 600; }
   .banner span { color: var(--muted); font-size: 14px; }
@@ -88,20 +93,30 @@
   .cal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
   .cal-week span { text-align: center; font-size: 12px; color: var(--muted); font-weight: 500; }
   .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-  .day { position: relative; min-height: 54px; aspect-ratio: 1 / 1.08; border-radius: 12px; border: 1px solid transparent; padding: 6px 4px 5px;
-    display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-    background: color-mix(in oklab, var(--accent) var(--heat, 0%), var(--surface-2)); transition: transform .12s, border-color .15s, background .2s; }
-  .day:hover { transform: translateY(-2px); }
+  .day { position: relative; min-height: 48px; aspect-ratio: 1; border-radius: 14px; border: 0; padding: 7px 2px 6px;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: center; background: transparent;
+    transition: transform .12s, box-shadow .15s, background .2s; }
+  .day.has { background: color-mix(in oklab, var(--accent) var(--heat, 0%), var(--surface-2)); }
+  @media (hover: hover) { .day:hover { transform: translateY(-2px); } }
   .day:active { transform: scale(.94); }
   .day .d { font-size: 14px; font-weight: 600; line-height: 1; }
   .day .a { font-size: 10.5px; font-weight: 600; line-height: 1; opacity: .85; white-space: nowrap; }
   .day.hot { color: var(--accent-ink); }
-  .day.today { border-color: var(--ink); }
-  .day.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
-  .day.future { opacity: .4; }
+  .day.today .d { color: var(--accent); font-weight: 800; }
+  .day.today.hot .d { color: inherit; }
+  .day.today::after { content: ""; position: absolute; bottom: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .day.today.has::after { display: none; }
+  .day.sel { box-shadow: inset 0 0 0 2px var(--ink); }
+  .day.future { opacity: .35; }
   .day.empty { visibility: hidden; }
   .legend { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-top: 12px; }
   .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+  .onboard h3 { margin: 0 0 12px; font-size: 18px; letter-spacing: -.01em; }
+  .step { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; }
+  .step i { font-style: normal; flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; background: var(--accent-soft); color: var(--accent); }
+  .step p { margin: 3px 0 0; font-size: 15px; color: var(--muted); }
 
   /* ===== День ===== */
   .day-total { font-size: 28px; font-weight: 700; letter-spacing: -.02em; }
@@ -118,7 +133,7 @@
   .row .amt { font-weight: 700; white-space: nowrap; }
   .del { min-width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-size: 18px;
     transition: background .15s, color .15s, transform .12s; padding: 0 8px; }
-  .del:hover { background: var(--surface-2); }
+  @media (hover: hover) { .del:hover { background: var(--surface-2); } }
   .del:active { transform: scale(.92); }
   .del.armed { background: var(--up); color: #fff; font-size: 13px; font-weight: 600; }
   .empty-note { color: var(--muted); font-size: 14px; padding: 8px 0 4px; }
@@ -136,7 +151,7 @@
   .bar.max i { background: var(--accent); }
   .bar.sel i { outline: 2px solid var(--ink); outline-offset: 2px; }
   .bar span { font-size: 12px; color: var(--muted); }
-  .bar:hover i { filter: brightness(1.08); }
+  @media (hover: hover) { .bar:hover i { filter: brightness(1.08); } }
   .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
   .fact { min-width: 0; background: var(--surface-2); border-radius: var(--r-md); padding: 12px; }
   .fact small { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
@@ -162,7 +177,7 @@
     border: 0; border-radius: 999px; background: var(--ink); color: var(--bg); font-weight: 700; display: flex; align-items: center; gap: 8px;
     box-shadow: 0 10px 30px rgba(0,0,0,.25); transition: transform .15s; z-index: 20; }
   .fab span { font-size: 24px; line-height: 1; font-weight: 500; }
-  .fab:hover { transform: translateY(-2px); }
+  @media (hover: hover) { .fab:hover { transform: translateY(-2px); } }
   .fab:active { transform: scale(.95); }
   .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.4); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30; }
   .scrim.open { opacity: 1; pointer-events: auto; }
@@ -185,13 +200,14 @@
   .pill[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
   .primary { width: 100%; min-height: 54px; border: 0; border-radius: var(--r-md); background: var(--accent); color: var(--accent-ink);
     font-weight: 700; font-size: 16px; margin-top: 6px; transition: transform .12s, filter .15s; }
-  .primary:hover { filter: brightness(1.06); }
+  @media (hover: hover) { .primary:hover { filter: brightness(1.06); } }
   .primary:active { transform: scale(.98); }
   .primary:disabled { opacity: .6; }
 
   .toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 12px); transform: translate(-50%, -150%); background: var(--ink); color: var(--bg);
-    padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 500; transition: transform .25s; z-index: 40; max-width: calc(100% - 32px); }
-  .toast.show { transform: translate(-50%, 0); }
+    padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 500; transition: transform .25s, opacity .25s, visibility .25s; z-index: 40; max-width: calc(100% - 32px);
+    opacity: 0; visibility: hidden; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
 
   /* ===== Вход ===== */
   .login { min-height: 100vh; min-height: 100dvh; display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -212,12 +228,11 @@
   @media (max-width: 480px) {
     .app { padding-left: 12px; padding-right: 12px; }
     .card { padding: 16px 14px; border-radius: 20px; }
-    .brand { font-size: 0; gap: 0; }            /* на телефоне оставляем только иконку */
-    .month-nav b { min-width: 0; padding: 0 4px; font-size: 15px; }
+    .page-title b { font-size: 30px; }
     .hero .total { font-size: 40px; }
     .chip { font-size: 12.5px; padding: 6px 10px; }
     .cal, .cal-week { gap: 4px; }
-    .day { min-height: 46px; aspect-ratio: auto; border-radius: 10px; padding: 6px 2px 5px; }
+    .day { min-height: 44px; border-radius: 12px; padding: 6px 1px 5px; }
     .day .d { font-size: 13px; }
     .day .a { font-size: 9.5px; letter-spacing: -.02em; }
     .week-total .big { font-size: 30px; }
@@ -227,7 +242,8 @@
     .fact b { font-size: 14px; }
     .row { gap: 10px; }
     .ico { width: 38px; height: 38px; font-size: 18px; }
-    .fab { height: 52px; }
+    .fab { width: 60px; height: 60px; padding: 0; justify-content: center; font-size: 0; gap: 0; }
+    .fab span { font-size: 32px; }
   }
   @media (max-width: 350px) {
     .day .a { display: none; }
@@ -257,10 +273,9 @@
 
 <div class="app" id="app">
   <header class="top">
-    <div class="brand"><img src="apple-touch-icon.png" alt="">Расходы</div>
+    <h1 class="page-title"><small>Мои расходы</small><b id="month-label" aria-live="polite"></b></h1>
     <nav class="month-nav" aria-label="Выбор месяца">
       <button class="icon-btn" id="prev-m" aria-label="Предыдущий месяц">‹</button>
-      <b id="month-label" aria-live="polite"></b>
       <button class="icon-btn" id="next-m" aria-label="Следующий месяц">›</button>
     </nav>
   </header>
@@ -277,6 +292,13 @@
         <div class="total num" id="m-total">—</div>
         <div class="chips" id="m-chips"></div>
         <svg class="hero-spark" id="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </section>
+
+      <section class="card onboard" id="onboard" hidden aria-labelledby="onb-title">
+        <h3 id="onb-title">Здесь появятся ваши траты</h3>
+        <div class="step"><i>1</i><p>Платите через Apple Pay. Покупка запишется сама за пару секунд.</p></div>
+        <div class="step"><i>2</i><p>Наличные и переводы добавляйте кнопкой «+» внизу.</p></div>
+        <div class="step"><i>3</i><p>В воскресенье здесь будет отчёт за неделю и советы, на чём сэкономить.</p></div>
       </section>
 
       <section class="card" aria-labelledby="cal-title">
@@ -321,7 +343,7 @@
   </main>
 </div>
 
-<button class="fab" id="fab" type="button" hidden><span aria-hidden="true">+</span>Добавить трату</button>
+<button class="fab" id="fab" type="button" hidden aria-label="Добавить трату"><span aria-hidden="true">+</span>Добавить трату</button>
 
 <div class="scrim" id="scrim"></div>
 <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" aria-hidden="true">
@@ -423,11 +445,14 @@
   // ===== Отрисовка =====
   function render() {
     renderMonth(); renderCalendar(); renderDay(); renderWeek(); renderCats(); renderBanner();
+    $('onboard').hidden = !(S.loaded && !S.rows.length);
   }
 
   function renderMonth() {
     const first = new Date(S.y, S.m, 1), next = new Date(S.y, S.m + 1, 1), prevFirst = new Date(S.y, S.m - 1, 1);
-    $('month-label').textContent = first.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(' г.', '');
+    $('month-label').innerHTML = esc(first.toLocaleDateString('ru-RU', { month: 'long' })) + (S.y !== today.getFullYear() ? ' <span>' + S.y + '</span>' : '');
+    const curM = S.y === today.getFullYear() && S.m === today.getMonth();
+    $('next-m').disabled = curM;
     const rows = rowsBetween(first, next), total = sum(rows);
     const isCur = S.y === today.getFullYear() && S.m === today.getMonth();
     // сравниваем с тем же отрезком прошлого месяца, чтобы было честно
@@ -441,6 +466,7 @@
       const p = Math.round((total - prev) / prev * 100);
       chips.push((p > 0 ? '↑ ' : p < 0 ? '↓ ' : '') + Math.abs(p) + '% к прошлому месяцу');
     }
+    if (isCur) chips.unshift('Сегодня ' + money(daySum(today)));
     chips.push('≈ ' + money(total / Math.max(days, 1)) + ' в день');
     chips.push(rows.length + ' ' + plural(rows.length, ['покупка', 'покупки', 'покупок']));
     $('m-chips').innerHTML = chips.map(c => '<span class="chip num">' + esc(c) + '</span>').join('');
@@ -450,7 +476,7 @@
     for (let i = 1; i <= n; i++) { acc += daySum(new Date(S.y, S.m, i)); vals.push(acc); }
     const max = Math.max(acc, 1);
     const pts = vals.map((v, i) => (i / (n - 1) * 100).toFixed(1) + ',' + (30 - v / max * 28).toFixed(1)).join(' ');
-    $('spark').innerHTML = '<polyline points="' + pts + '" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke"/>';
+    $('spark').innerHTML = !total ? '' : '<polyline points="' + pts + '" fill="none" stroke="currentColor" stroke-width="1.6" vector-effect="non-scaling-stroke"/>';
   }
 
   function renderCalendar() {
@@ -465,6 +491,7 @@
       const d = new Date(S.y, S.m, i), s = daySum(d);
       const ratio = max ? s / max : 0, heat = s ? Math.round(14 + ratio * 86) : 0;
       const cls = ['day'];
+      if (s) cls.push('has');
       if (s && heat > 55) cls.push('hot');
       if (+d === +today) cls.push('today');
       if (+d === +S.sel) cls.push('sel');
@@ -641,7 +668,7 @@
     try {
       const d = await api();
       S.rows = d.rows; S.cats = d.categories || S.cats; index(); render();
-      if (!S.loaded) { S.loaded = true; $('app').classList.add('ready'); $('fab').hidden = false; $('login').classList.remove('show'); }
+      if (!S.loaded) { S.loaded = true; $('app').classList.add('ready'); $('fab').hidden = false; $('login').classList.remove('show'); render(); }
     } catch (e) {
       if (/доступ/i.test(e.message)) { clearKey(); KEY = ''; showLogin(true); }
       else if (!silent) toast('Нет связи. Попробуйте ещё раз');
