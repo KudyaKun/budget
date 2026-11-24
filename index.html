@@ -24,6 +24,8 @@
     --bg: #f4f3ee; --surface: #ffffff; --surface-2: #efeee7; --ink: #171714; --muted: #6b6a63;
     --line: #e3e1d8; --accent: #1d7a58; --accent-ink: #ffffff; --accent-soft: #dcefe5;
     --up: #b5452f; --down: #1d7a58; --shadow: 0 1px 2px rgba(23,23,20,.04), 0 8px 24px rgba(23,23,20,.06);
+    --l1: #cdebd9; --l1-ink: #12382a; --l2: #3fae7a; --l2-ink: #ffffff; --l3: #f2c94c; --l3-ink: #2a2000;
+    --l4: #f08a3c; --l4-ink: #2a1000; --l5: #e03e45; --l5-ink: #ffffff;
     --r-lg: 22px; --r-md: 14px; --r-sm: 10px;
     --font: "Onest", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
@@ -31,7 +33,9 @@
     :root {
       --bg: #0f0f0e; --surface: #1a1a18; --surface-2: #242421; --ink: #f2f1ec; --muted: #9c9b93;
       --line: #2c2c29; --accent: #4fc493; --accent-ink: #072117; --accent-soft: #173327;
-      --up: #f08a6c; --down: #4fc493; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
+      --up: #f08a6c; --down: #4fc493;
+      --l1: #1f5a43; --l1-ink: #e6f6ee; --l2: #2e9e6b; --l2-ink: #ffffff; --l3: #e2b52e; --l3-ink: #1d1600;
+      --l4: #ef7d2d; --l4-ink: #241000; --l5: #e5484d; --l5-ink: #ffffff; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.25);
     }
   }
   * { box-sizing: border-box; }
@@ -63,12 +67,12 @@
   .page-title b { display: block; font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; text-transform: capitalize; white-space: nowrap; }
   .page-title b span { color: var(--muted); font-weight: 600; }
   .month-nav { display: flex; align-items: center; gap: 6px; }
-  .month-nav .icon-btn { background: var(--surface); border: 1px solid var(--line); }
-  .month-nav .icon-btn:disabled { opacity: .35; }
-  .icon-btn { width: 44px; height: 44px; border-radius: 999px; border: 0; background: transparent; display: grid; place-items: center; font-size: 20px;
+  .icon-btn { width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--accent); color: var(--accent); background: transparent;
+    display: grid; place-items: center; font-size: 22px; font-weight: 700; line-height: 1; padding: 0 0 2px;
     transition: background .15s, transform .12s; }
-  @media (hover: hover) { .icon-btn:hover { background: var(--surface-2); } }
-  .icon-btn:active { transform: scale(.92); }
+  @media (hover: hover) { .icon-btn:hover { background: var(--accent-soft); } }
+  .icon-btn:active { transform: scale(.92); background: var(--accent); color: var(--accent-ink); }
+  .icon-btn:disabled { border-color: var(--line); color: var(--muted); opacity: .5; background: transparent; transform: none; cursor: default; }
 
   /* ===== Итог месяца ===== */
   .hero { position: relative; overflow: hidden; color: var(--accent-ink); border: 0;
@@ -96,21 +100,26 @@
   .day { position: relative; min-height: 48px; aspect-ratio: 1; border-radius: 14px; border: 0; padding: 7px 2px 6px;
     display: flex; flex-direction: column; justify-content: space-between; align-items: center; background: transparent;
     transition: transform .12s, box-shadow .15s, background .2s; }
-  .day.has { background: color-mix(in oklab, var(--accent) var(--heat, 0%), var(--surface-2)); }
+  .day.l1 { background: var(--l1); color: var(--l1-ink); }
+  .day.l2 { background: var(--l2); color: var(--l2-ink); }
+  .day.l3 { background: var(--l3); color: var(--l3-ink); }
+  .day.l4 { background: var(--l4); color: var(--l4-ink); }
+  .day.l5 { background: var(--l5); color: var(--l5-ink); box-shadow: 0 6px 16px -4px color-mix(in oklab, var(--l5) 70%, transparent); }
+  .day.l5 .a { font-weight: 800; opacity: 1; }
   @media (hover: hover) { .day:hover { transform: translateY(-2px); } }
   .day:active { transform: scale(.94); }
   .day .d { font-size: 14px; font-weight: 600; line-height: 1; }
   .day .a { font-size: 10.5px; font-weight: 600; line-height: 1; opacity: .85; white-space: nowrap; }
-  .day.hot { color: var(--accent-ink); }
+  
   .day.today .d { color: var(--accent); font-weight: 800; }
-  .day.today.hot .d { color: inherit; }
+  .day.today.has .d { color: inherit; }
   .day.today::after { content: ""; position: absolute; bottom: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
   .day.today.has::after { display: none; }
-  .day.sel { box-shadow: inset 0 0 0 2px var(--ink); }
+  .day.sel { outline: 2px solid var(--ink); outline-offset: 2px; }
   .day.future { opacity: .35; }
   .day.empty { visibility: hidden; }
   .legend { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-top: 12px; }
-  .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+  .legend i { width: 16px; height: 16px; border-radius: 5px; display: inline-block; }
 
   .onboard h3 { margin: 0 0 12px; font-size: 18px; letter-spacing: -.01em; }
   .step { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; }
@@ -147,8 +156,8 @@
   .bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; border: 0; background: none; padding: 0; min-height: 44px; }
   .bar i { display: block; width: 100%; max-width: 34px; border-radius: 8px 8px 4px 4px; background: var(--surface-2); min-height: 4px;
     transition: height .5s cubic-bezier(.2,.8,.2,1), background .2s; }
-  .bar.has i { background: color-mix(in oklab, var(--accent) 55%, var(--surface-2)); }
-  .bar.max i { background: var(--accent); }
+  .bar.l1 i { background: var(--l1); } .bar.l2 i { background: var(--l2); } .bar.l3 i { background: var(--l3); }
+  .bar.l4 i { background: var(--l4); } .bar.l5 i { background: var(--l5); }
   .bar.sel i { outline: 2px solid var(--ink); outline-offset: 2px; }
   .bar span { font-size: 12px; color: var(--muted); }
   @media (hover: hover) { .bar:hover i { filter: brightness(1.08); } }
@@ -305,11 +314,9 @@
         <div class="card-head"><h2 id="cal-title">Календарь</h2><span class="muted num" id="cal-avg"></span></div>
         <div class="cal-week" aria-hidden="true"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
         <div class="cal" id="cal" role="grid" aria-label="Траты по дням"></div>
-        <div class="legend" aria-hidden="true">меньше
-          <i style="background:color-mix(in oklab,var(--accent) 0%,var(--surface-2))"></i>
-          <i style="background:color-mix(in oklab,var(--accent) 30%,var(--surface-2))"></i>
-          <i style="background:color-mix(in oklab,var(--accent) 60%,var(--surface-2))"></i>
-          <i style="background:var(--accent)"></i>больше</div>
+        <div class="legend" aria-hidden="true">мало
+          <i style="background:var(--l1)"></i><i style="background:var(--l2)"></i><i style="background:var(--l3)"></i>
+          <i style="background:var(--l4)"></i><i style="background:var(--l5)"></i>много</div>
       </section>
 
       <section class="card" aria-labelledby="day-title">
@@ -324,7 +331,7 @@
       <section class="card" id="week-card" aria-labelledby="week-title">
         <div class="card-head">
           <div><h2 id="week-title">Неделя</h2><div class="muted" id="week-range" style="font-size:14px;margin-top:4px"></div></div>
-          <div style="display:flex;gap:2px">
+          <div style="display:flex;gap:8px">
             <button class="icon-btn" id="prev-w" aria-label="Предыдущая неделя">‹</button>
             <button class="icon-btn" id="next-w" aria-label="Следующая неделя">›</button>
           </div>
@@ -437,6 +444,16 @@
       if (!byDay.has(k)) byDay.set(k, []);
       byDay.get(k).push(r);
     });
+    const sums = [...byDay.values()].map(a => a.reduce((t, r) => t + r.amount, 0)).sort((a, b) => a - b);
+    MED = sums.length ? sums[Math.floor(sums.length / 2)] : 0;
+  }
+  // 1 — сильно меньше обычного дня, 5 — в 3,5 раза больше обычного и выше
+  let MED = 0;
+  function level(s) {
+    if (!s) return 0;
+    if (!MED) return 2;
+    const r = s / MED;
+    return r < .6 ? 1 : r < 1.3 ? 2 : r < 2.2 ? 3 : r < 3.5 ? 4 : 5;
   }
   const daySum = d => (byDay.get(dayKey(d)) || []).reduce((s, r) => s + r.amount, 0);
   const rowsBetween = (a, b) => S.rows.filter(r => r.d >= a && r.d < b);
@@ -489,15 +506,13 @@
     let total = 0, counted = 0;
     for (let i = 1; i <= n; i++) {
       const d = new Date(S.y, S.m, i), s = daySum(d);
-      const ratio = max ? s / max : 0, heat = s ? Math.round(14 + ratio * 86) : 0;
-      const cls = ['day'];
-      if (s) cls.push('has');
-      if (s && heat > 55) cls.push('hot');
+      const cls = ['day'], lv = level(s);
+      if (s) cls.push('has', 'l' + lv);
       if (+d === +today) cls.push('today');
       if (+d === +S.sel) cls.push('sel');
       if (d > today) cls.push('future'); else { total += s; counted++; }
       const label = fmtDay(d) + ': ' + (s ? money(s) : 'трат нет');
-      html += '<button class="' + cls.join(' ') + '" style="--heat:' + heat + '%" data-day="' + i + '" aria-label="' + esc(label) + '"' +
+      html += '<button class="' + cls.join(' ') + '" data-day="' + i + '" aria-label="' + esc(label) + '"' +
         (+d === +S.sel ? ' aria-current="date"' : '') + '><span class="d num">' + i + '</span><span class="a num">' + (s ? compact(s) : '') + '</span></button>';
     }
     $('cal').innerHTML = html;
@@ -609,12 +624,11 @@
     $('w-badge').hidden = !done || !w.rows.length;
     $('w-badge').textContent = 'Итоги готовы';
     $('next-w').disabled = isCur;
-    $('next-w').style.opacity = isCur ? .3 : 1;
     // столбики по дням
     const max = Math.max(...w.days, 1), names = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     $('w-bars').innerHTML = w.days.map((v, i) => {
       const dd = addDays(S.week, i);
-      const cls = ['bar']; if (v) cls.push('has'); if (v && v === max) cls.push('max'); if (+dd === +S.sel) cls.push('sel');
+      const cls = ['bar']; if (v) cls.push('has', 'l' + level(v)); if (+dd === +S.sel) cls.push('sel');
       return '<button class="' + cls.join(' ') + '" data-wday="' + i + '" aria-label="' + esc(fmtDay(dd) + ': ' + money(v)) + '">' +
         '<i style="height:' + Math.max(4, v / max * 100) + '%"></i><span>' + names[i] + '</span></button>';
     }).join('');
