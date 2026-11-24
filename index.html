@@ -152,6 +152,14 @@
   .pos { color: var(--down) !important; } .neg { color: var(--l5) !important; }
   .row .amt.pos::before { content: "+"; }
   .row .sub { font-size: 13px; color: var(--muted); }
+  .rec-row { flex-wrap: wrap; row-gap: 0; }
+  .rec-acts { display: flex; gap: 6px; flex-basis: 100%; padding-left: 54px; margin-top: -2px; }
+  .chip-btn { border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-size: 13px; font-weight: 600; border-radius: 999px;
+    padding: 0 12px; min-height: 34px; white-space: nowrap; transition: transform .12s, background .15s; }
+  .chip-btn:active { transform: scale(.95); }
+  .chip-btn.pay { border-color: var(--accent); color: var(--accent); }
+  .chip-btn.armed { background: var(--accent); color: var(--accent-ink); }
+  .paid { color: var(--down); font-weight: 600; }
   .rec-tag { font-size: 11.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 8px; }
 
   /* ===== День ===== */
@@ -517,7 +525,7 @@
   const APP = 'https://script.google.com/macros/s/AKfycbyezmLrGO8JE5nwWESKBgO19HRYjA0xRVgSib6g2K-QFl-wEG5MbZSO07eEWcaRSOa23g/exec';
   const STORE = 'expenses-key';
   // Версия страницы: менять при каждой публикации, чтобы iPhone подтянул обновление сам
-  const VERSION = '13';
+  const VERSION = '14';
 
   // iPhone держит приложение с экрана «Домой» в памяти. Сверяем версию с сайтом и перезагружаемся, если вышла новая.
   async function checkUpdate() {
@@ -768,10 +776,14 @@
 
   // ===== Регулярные платежи =====
   const tagOf = d => 'm' + d.getFullYear() + '-' + (d.getMonth() + 1);
+  const nextTag = () => tagOf(new Date(today.getFullYear(), today.getMonth() + 1, 1));
   function nextDue(r) {
     const due = (y, m) => new Date(y, m, Math.min(r.day, new Date(y, m + 1, 0).getDate()));
-    const thisM = due(today.getFullYear(), today.getMonth());
-    return r.done === tagOf(today) || thisM < today ? due(today.getFullYear(), today.getMonth() + 1) : thisM;
+    const y = today.getFullYear();
+    let m = today.getMonth();
+    if (r.done === tagOf(today) || due(y, m) < today) m++;       // этот месяц уже записан
+    if (r.done === nextTag() && m === today.getMonth() + 1) m++;  // следующий оплачен заранее
+    return due(y, m);
   }
   function renderRecurring() {
     const list = S.recurring.slice().sort((a, b) => nextDue(a) - nextDue(b));
@@ -780,13 +792,33 @@
     $('rec-sum').textContent = list.length ? money(monthly) + ' в месяц' + (pending.length ? ' · до конца месяца ещё ' + money(sum(pending)) : '') : '';
     $('rec-list').innerHTML = list.length ? list.map(r => {
       const c = catOf(r.category), nd = nextDue(r);
-      return '<div class="row"><div class="ico" style="--c-soft:' + c.c + '22">' + c.e + '</div>' +
-        '<div class="info"><div class="name">' + esc(r.name) + '</div><div class="sub num">каждое ' + r.day + '-е · следующий ' +
+      const mName = d => d.toLocaleDateString('ru-RU', { month: 'long' });
+      const status = r.done === tagOf(today) ? '<span class="paid">✓ за ' + mName(today) + ' оплачен</span> · '
+        : r.done === nextTag() ? '<span class="paid">✓ ' + mName(new Date(today.getFullYear(), today.getMonth() + 1, 1)) + ' оплачен заранее</span> · ' : '';
+      return '<div class="row rec-row"><div class="ico" style="--c-soft:' + c.c + '22">' + c.e + '</div>' +
+        '<div class="info"><div class="name">' + esc(r.name) + '</div><div class="sub num">' + status + 'каждое ' + r.day + '-е · следующий ' +
         nd.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '') + '</div></div>' +
         '<div class="amt num">' + money(r.amount) + '</div>' +
-        '<button class="del" data-act="recurring-delete" data-row="' + r.row + '" aria-label="Удалить регулярный платёж ' + esc(r.name) + '">✕</button></div>';
+        '<button class="del" data-act="recurring-delete" data-row="' + r.row + '" aria-label="Удалить регулярный платёж ' + esc(r.name) + '">✕</button>' +
+        '<div class="rec-acts"><button type="button" class="chip-btn pay" data-pay="' + r.row + '" data-amt="' + r.amount + '">Оплатил сейчас</button>' +
+        '<button type="button" class="chip-btn" data-edit="' + r.row + '">Изменить</button></div></div>';
     }).join('') : '<p class="empty-note">Аренда, связь, подписки — добавьте их один раз, и они будут записываться сами в свой день.</p>';
   }
+
+  $('rec-list').addEventListener('click', e => {
+    const p = e.target.closest('[data-pay]');
+    if (p) {
+      if (!p.classList.contains('armed')) {
+        p.classList.add('armed'); p.textContent = 'Записать ' + money(+p.dataset.amt) + '?';
+        clearTimeout(p.t); p.t = setTimeout(() => { p.classList.remove('armed'); p.textContent = 'Оплатил сейчас'; }, 3000);
+        return;
+      }
+      act({ action: 'recurring-pay', row: +p.dataset.pay }, 'Записал. В этом месяце он больше не спишется');
+      return;
+    }
+    const ed = e.target.closest('[data-edit]');
+    if (ed) editRecurringSheet(S.recurring.find(r => r.row === +ed.dataset.edit));
+  });
 
   // ===== Отчёт за неделю и советы =====
   function weekStats(start, len) {
@@ -1038,14 +1070,33 @@
     recHint();
   }
   function recHint() {
+    if (editRow) {
+      const r = S.recurring.find(x => x.row === editRow);
+      const nd = r && nextDue(Object.assign({}, r, { day: +$('f-day').value || 1 }));
+      $('f-rec-hint').textContent = nd ? 'Следующий раз запишется ' + nd.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) + '.' : '';
+      return;
+    }
     const d = +$('f-day').value || 1, due = new Date(today.getFullYear(), today.getMonth(), Math.min(d, new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()));
     const first = due > today ? due : new Date(today.getFullYear(), today.getMonth() + 1, Math.min(d, new Date(today.getFullYear(), today.getMonth() + 2, 0).getDate()));
     $('f-rec-hint').textContent = 'Первый раз запишется ' + first.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) + ', дальше — каждый месяц сам.';
   }
   $('f-day').innerHTML = [...Array(31)].map((_, i) => '<option value="' + (i + 1) + '">' + (i + 1) + '-е число</option>').join('');
   $('f-day').addEventListener('change', recHint);
+  let editRow = 0;
+  function editRecurringSheet(r) {
+    if (!r) return;
+    openSheet('recurring');
+    editRow = r.row;
+    $('sheet-title').textContent = 'Изменить платёж';
+    $('f-submit').textContent = 'Сохранить изменения';
+    $('f-amount').value = fmtNum(r.amount); sizeAmount();
+    $('f-merchant').value = r.name;
+    fCat = r.category;
+    $('f-cats').querySelectorAll('.ctile').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.c === r.category)));
+    $('f-day').value = String(r.day); recHint();
+  }
   function openSheet(mode) {
-    fCat = '';
+    fCat = ''; editRow = 0;
     $('f-day').value = String(today.getDate());
     setMode(typeof mode === 'string' ? mode : 'expense');
     $('f-cats').innerHTML = '<button type="button" class="ctile" aria-pressed="true" data-c=""><b>✨</b>Авто</button>' +
@@ -1125,9 +1176,10 @@
     const merchant = $('f-merchant').value.trim();
     if (fMode === 'saving' || fMode === 'withdraw') await act({ action: 'saving', amount, comment: merchant, withdraw: fMode === 'withdraw', date: when.getTime() }, fMode === 'saving' ? 'Отложено ' + money(amount) : 'Забрано ' + money(amount));
     else if (fMode === 'income') await act({ action: 'income', amount, merchant, date: when.getTime() }, 'Доход сохранён');
+    else if (fMode === 'recurring' && editRow) await act({ action: 'recurring-edit', row: editRow, amount, merchant, category: fCat, day: +$('f-day').value }, 'Платёж изменён');
     else if (fMode === 'recurring') await act({ action: 'recurring', amount, merchant, category: fCat, day: +$('f-day').value }, 'Регулярный платёж добавлен');
     else await act({ action: 'add', amount, merchant, category: fCat, date: when.getTime() }, 'Трата сохранена');
-    $('f-submit').disabled = false; $('f-submit').textContent = MODE[fMode].btn;
+    $('f-submit').disabled = false; $('f-submit').textContent = editRow ? 'Сохранить изменения' : MODE[fMode].btn;
     closeSheet();
   });
 
