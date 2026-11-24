@@ -172,6 +172,9 @@
   .row .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .row .meta { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
   .row .time { font-size: 13px; color: var(--muted); }
+  .wait { width: 30px; height: 30px; flex: none; display: grid; place-items: center; }
+  .wait::after { content: ''; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line, #8884); border-top-color: var(--muted, #888); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .catsel { appearance: none; -webkit-appearance: none; border: 0; background: var(--surface-2); border-radius: 999px; font-size: 12.5px;
     padding: 4px 10px; min-height: 28px; color: var(--muted); }
   .row .amt { font-weight: 700; white-space: nowrap; }
@@ -525,7 +528,7 @@
   const APP = 'https://script.google.com/macros/s/AKfycbyezmLrGO8JE5nwWESKBgO19HRYjA0xRVgSib6g2K-QFl-wEG5MbZSO07eEWcaRSOa23g/exec';
   const STORE = 'expenses-key';
   // Версия страницы: менять при каждой публикации, чтобы iPhone подтянул обновление сам
-  const VERSION = '14';
+  const VERSION = '15';
 
   // iPhone держит приложение с экрана «Домой» в памяти. Сверяем версию с сайтом и перезагружаемся, если вышла новая.
   async function checkUpdate() {
@@ -572,12 +575,12 @@
 
   function getKey() { try { return localStorage.getItem(STORE) || ''; } catch (e) { return ''; } }
   function setKey(k) { try { localStorage.setItem(STORE, k); } catch (e) {} }
-  function clearKey() { try { localStorage.removeItem(STORE); } catch (e) {} }
+  function clearKey() { try { localStorage.removeItem(STORE); localStorage.removeItem('expenses-cache'); } catch (e) {} }
 
   let KEY = getKey();
   async function api(payload) {
     const res = payload
-      ? await fetch(APP, { method: 'POST', body: JSON.stringify(Object.assign({ key: KEY }, payload)) })
+      ? await fetch(APP, { method: 'POST', keepalive: true, body: JSON.stringify(Object.assign({ key: KEY }, payload)) })
       : await fetch(APP + '?api=1&key=' + encodeURIComponent(KEY) + '&t=' + Date.now());
     const d = await res.json();
     if (d.error) throw new Error(d.error);
@@ -623,7 +626,9 @@
   const sum = rows => rows.reduce((s, r) => s + r.amount, 0);
 
   // ===== Отрисовка =====
-  function applyData(d) {
+  const CACHE = 'expenses-cache';
+  function applyData(d, fromCache) {
+    if (!fromCache) try { localStorage.setItem(CACHE, JSON.stringify(d)); } catch (e) {}
     S.rows = d.rows || [];
     if (d.categories) S.cats = d.categories;
     S.incomes = d.incomes || [];
@@ -691,6 +696,7 @@
     $('cal-avg').textContent = counted ? 'в среднем ' + money(total / counted) : '';
   }
 
+  const WAIT = '<span class="wait" role="img" aria-label="Сохраняется"></span>';
   function rowHtml(r) {
     const c = catOf(r.category);
     const time = r.d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -698,9 +704,9 @@
     return '<div class="row"><div class="ico" style="--c-soft:' + c.c + '22">' + c.e + '</div>' +
       '<div class="info"><div class="name">' + esc(r.merchant || 'Без названия') + '</div>' +
       '<div class="meta"><span class="time num">' + time + '</span>' + (r.card === 'регулярный' ? '<span class="rec-tag">регулярный</span>' : '') +
-      '<select class="catsel" data-row="' + r.row + '" aria-label="Категория для ' + esc(r.merchant || 'покупки') + '">' + opts + '</select></div></div>' +
+      (r.pending ? '<span class="rec-tag">' + esc(r.category) + '</span>' : '<select class="catsel" data-row="' + r.row + '" aria-label="Категория для ' + esc(r.merchant || 'покупки') + '">' + opts + '</select>') + '</div></div>' +
       '<div class="amt num">' + money(r.amount) + '</div>' +
-      '<button class="del" data-row="' + r.row + '" aria-label="Удалить покупку ' + esc(r.merchant || '') + '">✕</button></div>';
+      (r.pending ? WAIT : '<button class="del" data-row="' + r.row + '" aria-label="Удалить покупку ' + esc(r.merchant || '') + '">✕</button>') + '</div>';
   }
 
   function renderDay() {
@@ -752,7 +758,7 @@
     return '<div class="row"><div class="ico" style="--c-soft:#2e9e6b26">💰</div>' +
       '<div class="info"><div class="name">' + esc(r.source || 'Доход') + '</div><div class="sub num">' + when + ' · доход</div></div>' +
       '<div class="amt num pos">' + money(r.amount) + '</div>' +
-      '<button class="del" data-act="income-delete" data-row="' + r.row + '" aria-label="Удалить доход ' + esc(r.source || '') + '">✕</button></div>';
+      (r.pending ? WAIT : '<button class="del" data-act="income-delete" data-row="' + r.row + '" aria-label="Удалить доход ' + esc(r.source || '') + '">✕</button>') + '</div>';
   }
 
   // ===== Отложено =====
@@ -770,7 +776,7 @@
         '<div class="info"><div class="name">' + esc(r.comment || (plus ? 'Отложил' : 'Забрал')) + '</div><div class="sub num">' +
         r.d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '') + ' · ' + (plus ? 'отложено' : 'забрано') + '</div></div>' +
         '<div class="amt num ' + (plus ? 'pos' : 'neg') + '">' + (plus ? '' : '−') + money(Math.abs(r.amount)) + '</div>' +
-        '<button class="del" data-act="saving-delete" data-row="' + r.row + '" aria-label="Удалить запись">✕</button></div>';
+        (r.pending ? WAIT : '<button class="del" data-act="saving-delete" data-row="' + r.row + '" aria-label="Удалить запись">✕</button>') + '</div>';
     }).join('') : '<p class="empty-note">Отложил деньги с зарплаты или со сдачи лимита — запиши сюда, и будет видно, сколько накопилось.</p>';
   }
 
@@ -799,9 +805,9 @@
         '<div class="info"><div class="name">' + esc(r.name) + '</div><div class="sub num">' + status + 'каждое ' + r.day + '-е · следующий ' +
         nd.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '') + '</div></div>' +
         '<div class="amt num">' + money(r.amount) + '</div>' +
-        '<button class="del" data-act="recurring-delete" data-row="' + r.row + '" aria-label="Удалить регулярный платёж ' + esc(r.name) + '">✕</button>' +
+        (r.pending ? WAIT + '</div>' : '<button class="del" data-act="recurring-delete" data-row="' + r.row + '" aria-label="Удалить регулярный платёж ' + esc(r.name) + '">✕</button>' +
         '<div class="rec-acts"><button type="button" class="chip-btn pay" data-pay="' + r.row + '" data-amt="' + r.amount + '">Оплатил сейчас</button>' +
-        '<button type="button" class="chip-btn" data-edit="' + r.row + '">Изменить</button></div></div>';
+        '<button type="button" class="chip-btn" data-edit="' + r.row + '">Изменить</button></div></div>');
     }).join('') : '<p class="empty-note">Аренда, связь, подписки — добавьте их один раз, и они будут записываться сами в свой день.</p>';
   }
 
@@ -979,6 +985,7 @@
   async function load(silent) {
     try {
       const d = await api();
+      if (busy || Q.length) return;   // ещё отправляем изменения — их ответ будет свежее
       applyData(d);
       if (!S.loaded) { S.loaded = true; $('app').classList.add('ready'); $('fab').hidden = false; $('login').classList.remove('show'); render(); }
     } catch (e) {
@@ -987,12 +994,60 @@
     }
   }
 
-  async function act(payload, okText) {
-    try {
-      const d = await api(payload);
-      applyData(d); if (okText) toast(okText);
-    } catch (e) { toast('Не получилось: ' + e.message); }
+  // ===== Мгновенные изменения: сразу на экране, на сервер — в фоне, по очереди =====
+  const Q = []; let busy = false, tmpId = -1;
+  const LISTS = { 'delete': 'rows', 'income-delete': 'incomes', 'recurring-delete': 'recurring', 'saving-delete': 'savings' };
+  function localApply(p) {
+    const now = Date.now(), list = LISTS[p.action];
+    if (list) {
+      // строки в таблице сдвигаются после удаления — сдвигаем и номера у себя
+      S[list] = S[list].filter(x => x.row !== p.row);
+      S[list].forEach(x => { if (x.row > p.row) x.row--; });
+    } else if (p.action === 'add') {
+      S.rows.push({ row: tmpId--, date: p.date, amount: p.amount, merchant: p.merchant, card: 'вручную', category: p.category || 'Другое', pending: true });
+    } else if (p.action === 'category') {
+      const r = S.rows.find(x => x.row === p.row); if (r) r.category = p.category;
+    } else if (p.action === 'income') {
+      S.incomes.push({ row: tmpId--, date: p.date, amount: p.amount, source: p.merchant || 'Доход', pending: true });
+    } else if (p.action === 'saving') {
+      S.savings.push({ row: tmpId--, date: p.date, d: new Date(p.date), amount: p.withdraw ? -p.amount : p.amount, comment: p.comment, pending: true });
+    } else if (p.action === 'recurring') {
+      const due = Math.min(p.day, new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate());
+      S.recurring.push({ row: tmpId--, name: p.merchant || 'Платёж', amount: p.amount, category: p.category || 'Другое', day: p.day, done: new Date().getDate() >= due ? tagOf(today) : '', pending: true });
+    } else if (p.action === 'recurring-edit') {
+      const r = S.recurring.find(x => x.row === p.row);
+      if (r) Object.assign(r, { name: p.merchant || r.name, amount: p.amount, category: p.category || r.category, day: p.day, pending: true });
+    } else if (p.action === 'recurring-pay') {
+      const r = S.recurring.find(x => x.row === p.row);
+      if (r) {
+        S.rows.push({ row: tmpId--, date: now, amount: r.amount, merchant: r.name, card: 'регулярный', category: r.category, pending: true });
+        r.done = r.done === tagOf(today) ? nextTag() : tagOf(today); r.pending = true;
+      }
+    } else if (p.action === 'settings') {
+      S.settings = Object.assign({}, S.settings, { weekLimit: p.weekLimit });
+    }
   }
+  function act(payload, okText) {
+    localApply(payload); index(); render();
+    if (okText) toast(okText);
+    Q.push(payload); pump();
+  }
+  async function pump() {
+    if (busy) return;
+    busy = true; let d;
+    while (Q.length) {
+      try { d = await api(Q[0]); Q.shift(); }
+      catch (e) {
+        const lost = Q.length; Q.length = 0; busy = false;
+        toast((lost > 1 ? 'Не сохранилось ' + lost + ' изменения' : 'Не сохранилось') + ' — нет связи. Попробуйте ещё раз');
+        load(true); return;
+      }
+    }
+    busy = false;
+    applyData(d);
+  }
+  // если закрыть приложение, пока изменения ещё отправляются, — предупредим
+  window.addEventListener('beforeunload', e => { if (busy || Q.length) { e.preventDefault(); e.returnValue = ''; } });
 
   function selectDay(d) {
     S.sel = startOfDay(d);
@@ -1120,13 +1175,11 @@
   $('l-close').onclick = closeSheet;
   $('l-amount').addEventListener('input', () => { $('l-amount').value = fmtNum($('l-amount').value); });
   $('l-pills').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) $('l-amount').value = fmtNum(b.dataset.v); });
-  $('limit-form').addEventListener('submit', async e => {
+  $('limit-form').addEventListener('submit', e => {
     e.preventDefault();
     const v = +$('l-amount').value.replace(/\D/g, '') || 0;
-    $('l-submit').disabled = true;
-    await act({ action: 'settings', weekLimit: v }, v ? 'Лимит: ' + money(v) + ' в неделю' : 'Лимит выключен');
-    $('l-submit').disabled = false;
     closeSheet();
+    act({ action: 'settings', weekLimit: v }, v ? 'Лимит: ' + money(v) + ' в неделю' : 'Лимит выключен');
   });
   $('fab').onclick = () => openSheet('expense');
   $('inc-add').onclick = () => openSheet('income');
@@ -1164,7 +1217,7 @@
     const [y, m, d] = $('f-date').value.split('-').map(Number);
     if (y) setWhen(new Date(Math.min(+new Date(y, m - 1, d), +today)));
   });
-  $('add-form').addEventListener('submit', async e => {
+  $('add-form').addEventListener('submit', e => {
     e.preventDefault();
     const amount = parseFloat($('f-amount').value.replace(/\s/g, '').replace(',', '.'));
     if (!(amount > 0)) {
@@ -1172,15 +1225,13 @@
     }
     const now = new Date();
     const when = +fDay === +today ? now : new Date(fDay.getFullYear(), fDay.getMonth(), fDay.getDate(), 12, 0);
-    $('f-submit').disabled = true; $('f-submit').textContent = 'Сохраняю…';
-    const merchant = $('f-merchant').value.trim();
-    if (fMode === 'saving' || fMode === 'withdraw') await act({ action: 'saving', amount, comment: merchant, withdraw: fMode === 'withdraw', date: when.getTime() }, fMode === 'saving' ? 'Отложено ' + money(amount) : 'Забрано ' + money(amount));
-    else if (fMode === 'income') await act({ action: 'income', amount, merchant, date: when.getTime() }, 'Доход сохранён');
-    else if (fMode === 'recurring' && editRow) await act({ action: 'recurring-edit', row: editRow, amount, merchant, category: fCat, day: +$('f-day').value }, 'Платёж изменён');
-    else if (fMode === 'recurring') await act({ action: 'recurring', amount, merchant, category: fCat, day: +$('f-day').value }, 'Регулярный платёж добавлен');
-    else await act({ action: 'add', amount, merchant, category: fCat, date: when.getTime() }, 'Трата сохранена');
-    $('f-submit').disabled = false; $('f-submit').textContent = editRow ? 'Сохранить изменения' : MODE[fMode].btn;
+    const merchant = $('f-merchant').value.trim(), mode = fMode, er = editRow, cat = fCat, day = +$('f-day').value;
     closeSheet();
+    if (mode === 'saving' || mode === 'withdraw') act({ action: 'saving', amount, comment: merchant, withdraw: mode === 'withdraw', date: when.getTime() }, mode === 'saving' ? 'Отложено ' + money(amount) : 'Забрано ' + money(amount));
+    else if (mode === 'income') act({ action: 'income', amount, merchant, date: when.getTime() }, 'Доход сохранён');
+    else if (mode === 'recurring' && er) act({ action: 'recurring-edit', row: er, amount, merchant, category: cat, day: day }, 'Платёж изменён');
+    else if (mode === 'recurring') act({ action: 'recurring', amount, merchant, category: cat, day: day }, 'Регулярный платёж добавлен');
+    else act({ action: 'add', amount, merchant, category: cat, date: when.getTime() }, 'Трата сохранена');
   });
 
   // ===== Вход =====
@@ -1200,9 +1251,15 @@
   if (location.hash === '#logout') { clearKey(); KEY = ''; history.replaceState(null, '', location.pathname); }
   if (KEY) {
     // пока данные грузятся, показываем каркас
-    $('app').classList.add('ready'); index(); render();
-    ['m-total', 'day-total', 'w-total'].forEach(id => $(id).classList.add('skeleton'));
-    load().then(() => ['m-total', 'day-total', 'w-total'].forEach(id => $(id).classList.remove('skeleton')));
+    // сразу показываем то, что было в прошлый раз, а свежие данные подтянем в фоне
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch (e) {}
+    if (cached) { applyData(cached, true); S.loaded = true; $('app').classList.add('ready'); $('fab').hidden = false; load(true); }
+    else {
+      $('app').classList.add('ready'); index(); render();
+      ['m-total', 'day-total', 'w-total'].forEach(id => $(id).classList.add('skeleton'));
+      load().then(() => ['m-total', 'day-total', 'w-total'].forEach(id => $(id).classList.remove('skeleton')));
+    }
   } else showLogin(false);
 
   // вернулись в приложение (например, после оплаты Apple Pay) — обновим данные
