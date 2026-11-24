@@ -12,6 +12,8 @@
 <meta name="theme-color" content="#f4f3ee" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)">
 <meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
@@ -384,6 +386,21 @@
   // ===== Связь с сервером (Google Apps Script). Секретного слова в коде нет. =====
   const APP = 'https://script.google.com/macros/s/AKfycbyezmLrGO8JE5nwWESKBgO19HRYjA0xRVgSib6g2K-QFl-wEG5MbZSO07eEWcaRSOa23g/exec';
   const STORE = 'expenses-key';
+  // Версия страницы: менять при каждой публикации, чтобы iPhone подтянул обновление сам
+  const VERSION = '6';
+
+  // iPhone держит приложение с экрана «Домой» в памяти. Сверяем версию с сайтом и перезагружаемся, если вышла новая.
+  async function checkUpdate() {
+    try {
+      const t = await (await fetch('./index.html?check=' + Date.now(), { cache: 'no-store' })).text();
+      const m = t.match(/const VERSION = '([^']+)'/);
+      if (!m || m[1] === VERSION) return;
+      if (sessionStorage.getItem('tried-' + m[1])) return; // не зацикливаемся, если кэш упрямый
+      sessionStorage.setItem('tried-' + m[1], '1');
+      location.replace(location.pathname + '?v=' + m[1] + location.hash);
+    } catch (e) {}
+  }
+  checkUpdate();
 
   const CAT = {
     'Продукты':    { e: '🛒', c: '#2e9e6b' },
@@ -791,7 +808,7 @@
   } else showLogin(false);
 
   // вернулись в приложение (например, после оплаты Apple Pay) — обновим данные
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && KEY && S.loaded) load(true); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkUpdate(); if (KEY && S.loaded) load(true); } });
 </script>
 </body>
 </html>
