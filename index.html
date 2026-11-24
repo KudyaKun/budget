@@ -129,6 +129,29 @@
     font-size: 13px; font-weight: 700; background: var(--accent-soft); color: var(--accent); }
   .step p { margin: 3px 0 0; font-size: 15px; color: var(--muted); }
 
+  /* ===== Лимит недели ===== */
+  .link-btn { flex: none; white-space: nowrap; border: 0; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 14px; border-radius: 999px; padding: 0 14px; min-height: 36px; }
+  .link-btn:active { transform: scale(.95); }
+  .limit-nums { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .limit-nums b { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+  .ltrack { position: relative; height: 12px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin: 12px 0 10px; }
+  .lfill { height: 100%; border-radius: 999px; background: var(--l2); transition: width .6s cubic-bezier(.2,.8,.2,1), background .3s; }
+  .lfill.warn { background: var(--l3); } .lfill.over { background: var(--l5); }
+  .ltoday { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); opacity: .35; }
+  .limit-note { margin: 0; font-size: 14.5px; color: var(--muted); }
+  .limit-note b { color: var(--ink); }
+  .limit-note.over b { color: var(--l5); }
+  .wlimit { font-size: 13.5px; margin-top: 6px; color: var(--muted); }
+  .wlimit.over { color: var(--l5); font-weight: 600; } .wlimit.ok { color: var(--down); font-weight: 600; }
+
+  /* ===== Доходы и регулярные ===== */
+  .bal3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .bal3 .fact b { font-size: 15px; }
+  .pos { color: var(--down) !important; } .neg { color: var(--l5) !important; }
+  .row .amt.pos::before { content: "+"; }
+  .row .sub { font-size: 13px; color: var(--muted); }
+  .rec-tag { font-size: 11.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 8px; }
+
   /* ===== День ===== */
   .day-total { font-size: 28px; font-weight: 700; letter-spacing: -.02em; }
   .list { margin-top: 6px; }
@@ -231,6 +254,16 @@
   .seg [aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
   .seg input[type="date"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; padding: 0; margin: 0; -webkit-appearance: none; appearance: none; cursor: pointer; }
   .sheet .primary { margin-top: 18px; }
+  .mode { margin: 4px 0 2px; }
+  .sheet[data-mode="income"] .only-exp, .sheet[data-mode="income"] .only-rec,
+  .sheet[data-mode="expense"] .only-rec, .sheet[data-mode="expense"] .only-inc,
+  .sheet[data-mode="recurring"] .not-rec, .sheet[data-mode="recurring"] .only-inc { display: none; }
+  .sheet[data-mode="income"] .amount-box input { color: var(--down); }
+  .daysel { appearance: none; -webkit-appearance: none; }
+  .rec-hint { font-size: 13px; color: var(--muted); margin: 8px 2px 0; }
+  .limit-pills { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+  .limit-pills button { min-height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-weight: 600; font-size: 14px; }
+  .limit-pills button:active { transform: scale(.95); }
   .sheet.open { transform: none; }
   .grab { width: 40px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto 10px; }
   .field { margin-bottom: 12px; }
@@ -341,6 +374,13 @@
         <svg class="hero-spark" id="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"></svg>
       </section>
 
+      <section class="card" id="limit-card" aria-labelledby="lim-title">
+        <div class="card-head"><h2 id="lim-title">Лимит на неделю</h2><button type="button" class="link-btn" id="lim-edit">Изменить</button></div>
+        <div class="limit-nums"><b class="num" id="lim-spent">0 ₸</b><span class="muted num" id="lim-of"></span></div>
+        <div class="ltrack"><div class="lfill" id="lim-fill"></div><i class="ltoday" id="lim-today" title="Где вы должны быть сегодня, если тратить ровно"></i></div>
+        <p class="limit-note" id="lim-note"></p>
+      </section>
+
       <section class="card onboard" id="onboard" hidden aria-labelledby="onb-title">
         <h3 id="onb-title">Здесь появятся ваши траты</h3>
         <div class="step"><i>1</i><p>Платите через Apple Pay. Покупка запишется сама за пару секунд.</p></div>
@@ -375,9 +415,26 @@
           </div>
         </div>
         <div class="week-total"><span class="big num" id="w-total">—</span><span class="delta num" id="w-delta"></span><span class="badge" id="w-badge" hidden></span></div>
+        <div class="wlimit num" id="w-limit"></div>
         <div class="bars" id="w-bars"></div>
         <div class="facts" id="w-facts"></div>
         <div class="tips" id="w-tips"></div>
+      </section>
+
+      <section class="card" id="inc-card" aria-labelledby="inc-title">
+        <div class="card-head"><h2 id="inc-title">Доходы и остаток</h2><button type="button" class="link-btn" id="inc-add">+ Доход</button></div>
+        <div class="bal3">
+          <div class="fact"><small>Доходы</small><b class="num pos" id="b-inc">0 ₸</b></div>
+          <div class="fact"><small>Расходы</small><b class="num" id="b-exp">0 ₸</b></div>
+          <div class="fact"><small>Остаток</small><b class="num" id="b-left">0 ₸</b></div>
+        </div>
+        <div class="list" id="inc-list"></div>
+      </section>
+
+      <section class="card" id="rec-card" aria-labelledby="rec-title">
+        <div class="card-head"><div><h2 id="rec-title">Регулярные платежи</h2><div class="muted num" id="rec-sum" style="font-size:14px;margin-top:4px"></div></div>
+          <button type="button" class="link-btn" id="rec-add">+ Добавить</button></div>
+        <div class="list" id="rec-list"></div>
       </section>
 
       <section class="card" aria-labelledby="cats-title">
@@ -398,6 +455,11 @@
     <button type="button" class="close" id="f-close" aria-label="Закрыть">✕</button>
   </div>
   <form id="add-form" novalidate>
+    <div class="seg mode" id="f-mode" role="group" aria-label="Что добавляем">
+      <button type="button" data-mode="expense" aria-pressed="true">Расход</button>
+      <button type="button" data-mode="income" aria-pressed="false">Доход</button>
+      <button type="button" data-mode="recurring" aria-pressed="false">Регулярный</button>
+    </div>
     <div id="f-amount-field">
       <label class="amount-box" for="f-amount">
         <input id="f-amount" class="num" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Сумма в тенге">
@@ -408,20 +470,41 @@
       <div class="amount-err" role="alert">Введите сумму больше нуля</div>
     </div>
 
-    <label class="sec-label" for="f-merchant">Где или что</label>
+    <label class="sec-label" for="f-merchant" id="f-merchant-label">Где или что</label>
     <input id="f-merchant" class="text-in" autocomplete="off" placeholder="Magnum, такси, обед">
 
-    <span class="sec-label" id="f-cats-label">Категория</span>
-    <div class="cat-strip" id="f-cats" role="group" aria-labelledby="f-cats-label"></div>
+    <span class="sec-label only-exp only-rec" id="f-cats-label">Категория</span>
+    <div class="cat-strip only-exp only-rec" id="f-cats" role="group" aria-labelledby="f-cats-label"></div>
 
-    <span class="sec-label" id="f-date-label">Когда</span>
-    <div class="seg" id="f-when" role="group" aria-labelledby="f-date-label">
+    <label class="sec-label only-rec" for="f-day">Какого числа списывается</label>
+    <select class="text-in daysel only-rec" id="f-day"></select>
+    <p class="rec-hint only-rec" id="f-rec-hint"></p>
+
+    <span class="sec-label not-rec" id="f-date-label">Когда</span>
+    <div class="seg not-rec" id="f-when" role="group" aria-labelledby="f-date-label">
       <button type="button" data-when="0" aria-pressed="true">Сегодня</button>
       <button type="button" data-when="1" aria-pressed="false">Вчера</button>
       <label aria-pressed="false" id="f-other"><span id="f-other-text">Другой день</span><input id="f-date" type="date" aria-label="Выбрать дату"></label>
     </div>
 
     <button class="primary" type="submit" id="f-submit">Сохранить трату</button>
+  </form>
+</section>
+
+<section class="sheet" id="lsheet" role="dialog" aria-modal="true" aria-labelledby="lsheet-title" aria-hidden="true">
+  <div class="grab"></div>
+  <div class="sheet-head">
+    <h3 id="lsheet-title">Лимит на неделю</h3>
+    <button type="button" class="close" id="l-close" aria-label="Закрыть">✕</button>
+  </div>
+  <form id="limit-form" novalidate>
+    <label class="sec-label" for="l-amount">Сколько можно тратить за неделю, ₸</label>
+    <input id="l-amount" class="text-in num" inputmode="numeric" autocomplete="off" placeholder="100 000">
+    <div class="limit-pills" id="l-pills">
+      <button type="button" data-v="50000">50к</button><button type="button" data-v="75000">75к</button>
+      <button type="button" data-v="100000">100к</button><button type="button" data-v="150000">150к</button>
+    </div>
+    <button class="primary" type="submit" id="l-submit">Сохранить лимит</button>
   </form>
 </section>
 
@@ -432,7 +515,7 @@
   const APP = 'https://script.google.com/macros/s/AKfycbyezmLrGO8JE5nwWESKBgO19HRYjA0xRVgSib6g2K-QFl-wEG5MbZSO07eEWcaRSOa23g/exec';
   const STORE = 'expenses-key';
   // Версия страницы: менять при каждой публикации, чтобы iPhone подтянул обновление сам
-  const VERSION = '9';
+  const VERSION = '10';
 
   // iPhone держит приложение с экрана «Домой» в памяти. Сверяем версию с сайтом и перезагружаемся, если вышла новая.
   async function checkUpdate() {
@@ -493,14 +576,21 @@
 
   // ===== Состояние =====
   const today = startOfDay(new Date());
-  const S = { rows: [], cats: Object.keys(CAT), y: today.getFullYear(), m: today.getMonth(), sel: today, week: startOfWeek(today), loaded: false };
+  const S = { rows: [], incomes: [], recurring: [], settings: { weekLimit: 100000 }, cats: Object.keys(CAT), y: today.getFullYear(), m: today.getMonth(), sel: today, week: startOfWeek(today), loaded: false };
   // в воскресенье вечером и в понедельник показываем итоги завершённой недели
   const dow = (today.getDay() + 6) % 7; // 0 = понедельник
   if (dow === 0) S.week = addDays(startOfWeek(today), -7);
 
   let byDay = new Map();
+  let incByDay = new Map();
   function index() {
-    byDay = new Map();
+    byDay = new Map(); incByDay = new Map();
+    S.incomes.forEach(r => {
+      r.d = new Date(r.date);
+      const k = dayKey(r.d);
+      if (!incByDay.has(k)) incByDay.set(k, []);
+      incByDay.get(k).push(r);
+    });
     S.rows.forEach(r => {
       r.d = new Date(r.date);
       const k = dayKey(r.d);
@@ -523,8 +613,17 @@
   const sum = rows => rows.reduce((s, r) => s + r.amount, 0);
 
   // ===== Отрисовка =====
+  function applyData(d) {
+    S.rows = d.rows || [];
+    if (d.categories) S.cats = d.categories;
+    S.incomes = d.incomes || [];
+    S.recurring = d.recurring || [];
+    if (d.settings) S.settings = d.settings;
+    index(); render();
+  }
   function render() {
     renderMonth(); renderCalendar(); renderDay(); renderWeek(); renderCats(); renderBanner();
+    renderLimit(); renderIncome(); renderRecurring();
     $('onboard').hidden = !(S.loaded && !S.rows.length);
   }
 
@@ -588,7 +687,7 @@
     const opts = S.cats.map(x => '<option' + (x === r.category ? ' selected' : '') + '>' + esc(x) + '</option>').join('');
     return '<div class="row"><div class="ico" style="--c-soft:' + c.c + '22">' + c.e + '</div>' +
       '<div class="info"><div class="name">' + esc(r.merchant || 'Без названия') + '</div>' +
-      '<div class="meta"><span class="time num">' + time + '</span>' +
+      '<div class="meta"><span class="time num">' + time + '</span>' + (r.card === 'регулярный' ? '<span class="rec-tag">регулярный</span>' : '') +
       '<select class="catsel" data-row="' + r.row + '" aria-label="Категория для ' + esc(r.merchant || 'покупки') + '">' + opts + '</select></div></div>' +
       '<div class="amt num">' + money(r.amount) + '</div>' +
       '<button class="del" data-row="' + r.row + '" aria-label="Удалить покупку ' + esc(r.merchant || '') + '">✕</button></div>';
@@ -599,8 +698,71 @@
     const isToday = +S.sel === +today;
     $('day-title').textContent = isToday ? 'Сегодня, ' + S.sel.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) : fmtDay(S.sel);
     $('day-total').textContent = money(sum(rows));
-    $('day-list').innerHTML = rows.length ? rows.map(rowHtml).join('')
+    const inc = (incByDay.get(dayKey(S.sel)) || []).slice().sort((a, b) => b.date - a.date);
+    $('day-list').innerHTML = (rows.length || inc.length) ? inc.map(r => incRowHtml(r, false)).join('') + rows.map(rowHtml).join('')
       : '<p class="empty-note">' + (S.sel > today ? 'Этот день ещё впереди.' : 'В этот день трат не было.') + '</p>';
+  }
+
+  // ===== Лимит недели =====
+  function renderLimit() {
+    const lim = S.settings.weekLimit || 0, ws = startOfWeek(today);
+    const spent = sum(rowsBetween(ws, addDays(ws, 7)));
+    $('limit-card').hidden = !lim;
+    if (!lim) return;
+    const pct = spent / lim, left = lim - spent, daysLeft = 7 - dow;
+    $('lim-spent').textContent = money(spent);
+    $('lim-of').textContent = 'из ' + money(lim);
+    const f = $('lim-fill');
+    f.style.width = Math.min(100, pct * 100) + '%';
+    f.className = 'lfill' + (pct > 1 ? ' over' : pct >= .8 ? ' warn' : '');
+    $('lim-today').style.left = ((dow + 1) / 7 * 100) + '%';
+    const n = $('lim-note');
+    n.className = 'limit-note' + (pct > 1 ? ' over' : '');
+    if (pct > 1) n.innerHTML = 'Лимит превышен на <b class="num">' + money(-left) + '</b>. До понедельника лучше обойтись без лишних покупок.';
+    else n.innerHTML = 'Осталось <b class="num">' + money(left) + '</b> · это примерно <b class="num">' + money(left / daysLeft) + '</b> в день до ' +
+      (daysLeft === 1 ? 'конца недели' : 'воскресенья') + '.';
+  }
+
+  // ===== Доходы и остаток месяца =====
+  function renderIncome() {
+    const a = new Date(S.y, S.m, 1), b = new Date(S.y, S.m + 1, 1);
+    const inc = S.incomes.filter(r => r.d >= a && r.d < b).sort((x, y) => y.date - x.date);
+    const ti = sum(inc), te = sum(rowsBetween(a, b)), left = ti - te;
+    $('b-inc').textContent = money(ti);
+    $('b-exp').textContent = money(te);
+    $('b-left').textContent = (left < 0 ? '−' : '') + money(Math.abs(left));
+    $('b-left').className = 'num ' + (left < 0 ? 'neg' : ti ? 'pos' : '');
+    $('inc-list').innerHTML = inc.length ? inc.map(r => incRowHtml(r, true)).join('')
+      : '<p class="empty-note">Доходов за этот месяц пока нет. Добавьте зарплату или перевод кнопкой «+ Доход».</p>';
+  }
+  function incRowHtml(r, withDate) {
+    const when = withDate ? r.d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '') : r.d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    return '<div class="row"><div class="ico" style="--c-soft:#2e9e6b26">💰</div>' +
+      '<div class="info"><div class="name">' + esc(r.source || 'Доход') + '</div><div class="sub num">' + when + ' · доход</div></div>' +
+      '<div class="amt num pos">' + money(r.amount) + '</div>' +
+      '<button class="del" data-act="income-delete" data-row="' + r.row + '" aria-label="Удалить доход ' + esc(r.source || '') + '">✕</button></div>';
+  }
+
+  // ===== Регулярные платежи =====
+  const tagOf = d => 'm' + d.getFullYear() + '-' + (d.getMonth() + 1);
+  function nextDue(r) {
+    const due = (y, m) => new Date(y, m, Math.min(r.day, new Date(y, m + 1, 0).getDate()));
+    const thisM = due(today.getFullYear(), today.getMonth());
+    return r.done === tagOf(today) || thisM < today ? due(today.getFullYear(), today.getMonth() + 1) : thisM;
+  }
+  function renderRecurring() {
+    const list = S.recurring.slice().sort((a, b) => nextDue(a) - nextDue(b));
+    const monthly = sum(list);
+    const pending = list.filter(r => r.done !== tagOf(today) && nextDue(r).getMonth() === today.getMonth());
+    $('rec-sum').textContent = list.length ? money(monthly) + ' в месяц' + (pending.length ? ' · до конца месяца ещё ' + money(sum(pending)) : '') : '';
+    $('rec-list').innerHTML = list.length ? list.map(r => {
+      const c = catOf(r.category), nd = nextDue(r);
+      return '<div class="row"><div class="ico" style="--c-soft:' + c.c + '22">' + c.e + '</div>' +
+        '<div class="info"><div class="name">' + esc(r.name) + '</div><div class="sub num">каждое ' + r.day + '-е · следующий ' +
+        nd.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '') + '</div></div>' +
+        '<div class="amt num">' + money(r.amount) + '</div>' +
+        '<button class="del" data-act="recurring-delete" data-row="' + r.row + '" aria-label="Удалить регулярный платёж ' + esc(r.name) + '">✕</button></div>';
+    }).join('') : '<p class="empty-note">Аренда, связь, подписки — добавьте их один раз, и они будут записываться сами в свой день.</p>';
   }
 
   // ===== Отчёт за неделю и советы =====
@@ -661,6 +823,11 @@
     if (subs.length) {
       tips.push({ i: '🔁', t: 'Подписки в этом месяце: ' + money(sum(subs)) + ' (' + [...new Set(subs.map(r => r.merchant))].slice(0, 3).join(', ') + '). Проверьте, всеми ли вы пользуетесь.', s: 0 });
     }
+    const lim = S.settings.weekLimit || 0;
+    if (lim && w.total > lim) {
+      const top = Object.entries(w.byCat).sort((a, b) => b[1] - a[1])[0];
+      tips.push({ i: '🚨', t: 'Неделя вышла за лимит на ' + money(w.total - lim) + '. Больше всего ушло на «' + top[0] + '» (' + money(top[1]) + ') — с неё и стоит начать.', s: 1e12 });
+    }
     tips.sort((a, b) => b.s - a.s);
     if (!tips.length) {
       if (!w.rows.length) tips.push({ i: '✨', t: 'На этой неделе трат пока нет. Советы появятся, когда наберётся несколько покупок.', s: 0 });
@@ -687,6 +854,13 @@
     $('w-badge').hidden = !done || !w.rows.length;
     $('w-badge').textContent = 'Итоги готовы';
     $('next-w').disabled = isCur;
+    const lim = S.settings.weekLimit || 0, wl = $('w-limit');
+    if (lim && w.rows.length) {
+      const over = w.total - lim;
+      wl.textContent = over > 0 ? 'Лимит ' + money(lim) + ' превышен на ' + money(over)
+        : (isCur ? 'Лимит ' + money(lim) + ' · осталось ' + money(-over) : 'Уложились в лимит ' + money(lim) + ', запас ' + money(-over));
+      wl.className = 'wlimit num ' + (over > 0 ? 'over' : isCur ? '' : 'ok');
+    } else { wl.textContent = ''; wl.className = 'wlimit'; }
     // столбики по дням
     const max = Math.max(...w.days, 1), names = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     $('w-bars').innerHTML = w.days.map((v, i) => {
@@ -744,7 +918,7 @@
   async function load(silent) {
     try {
       const d = await api();
-      S.rows = d.rows; S.cats = d.categories || S.cats; index(); render();
+      applyData(d);
       if (!S.loaded) { S.loaded = true; $('app').classList.add('ready'); $('fab').hidden = false; $('login').classList.remove('show'); render(); }
     } catch (e) {
       if (/доступ/i.test(e.message)) { clearKey(); KEY = ''; showLogin(true); }
@@ -755,7 +929,7 @@
   async function act(payload, okText) {
     try {
       const d = await api(payload);
-      S.rows = d.rows; index(); render(); if (okText) toast(okText);
+      applyData(d); if (okText) toast(okText);
     } catch (e) { toast('Не получилось: ' + e.message); }
   }
 
@@ -784,7 +958,7 @@
   $('day-list').addEventListener('change', e => {
     if (e.target.classList.contains('catsel')) act({ action: 'category', row: +e.target.dataset.row, category: e.target.value }, 'Категория сохранена. Запомнил этот магазин');
   });
-  $('day-list').addEventListener('click', e => {
+  document.addEventListener('click', e => {
     const b = e.target.closest('.del'); if (!b) return;
     if (!b.classList.contains('armed')) {
       document.querySelectorAll('.del.armed').forEach(x => { x.classList.remove('armed'); x.textContent = '✕'; });
@@ -792,7 +966,8 @@
       clearTimeout(b.t); b.t = setTimeout(() => { b.classList.remove('armed'); b.textContent = '✕'; }, 3000);
       return;
     }
-    act({ action: 'delete', row: +b.dataset.row }, 'Покупка удалена');
+    const a = b.dataset.act || 'delete';
+    act({ action: a, row: +b.dataset.row }, a === 'income-delete' ? 'Доход удалён' : a === 'recurring-delete' ? 'Регулярный платёж удалён' : 'Покупка удалена');
   });
 
   // ===== Шторка добавления =====
@@ -815,8 +990,35 @@
     $('f-other-text').textContent = k === 'x' ? fDay.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '') : 'Другой день';
     $('f-date').value = iso(fDay);
   }
-  function openSheet() {
+  let fMode = 'expense';
+  const MODE = {
+    expense:   { title: 'Новая трата', label: 'Где или что', ph: 'Magnum, такси, обед', btn: 'Сохранить трату' },
+    income:    { title: 'Новый доход', label: 'Откуда', ph: 'Зарплата, перевод, фриланс', btn: 'Сохранить доход' },
+    recurring: { title: 'Регулярный платёж', label: 'Название', ph: 'Аренда, связь, Netflix', btn: 'Добавить платёж' },
+  };
+  function setMode(m) {
+    fMode = m;
+    const M = MODE[m];
+    $('sheet').dataset.mode = m;
+    $('sheet-title').textContent = M.title;
+    $('f-merchant-label').textContent = M.label;
+    $('f-merchant').placeholder = M.ph;
+    $('f-submit').textContent = M.btn;
+    $('f-mode').querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+    recHint();
+  }
+  function recHint() {
+    const d = +$('f-day').value || 1, due = new Date(today.getFullYear(), today.getMonth(), Math.min(d, new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()));
+    const first = due > today ? due : new Date(today.getFullYear(), today.getMonth() + 1, Math.min(d, new Date(today.getFullYear(), today.getMonth() + 2, 0).getDate()));
+    $('f-rec-hint').textContent = 'Первый раз запишется ' + first.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) + ', дальше — каждый месяц сам.';
+  }
+  $('f-day').innerHTML = [...Array(31)].map((_, i) => '<option value="' + (i + 1) + '">' + (i + 1) + '-е число</option>').join('');
+  $('f-day').addEventListener('change', recHint);
+  $('f-mode').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+  function openSheet(mode) {
     fCat = '';
+    $('f-day').value = String(today.getDate());
+    setMode(typeof mode === 'string' ? mode : 'expense');
     $('f-cats').innerHTML = '<button type="button" class="ctile" aria-pressed="true" data-c=""><b>✨</b>Авто</button>' +
       S.cats.map(c => '<button type="button" class="ctile" aria-pressed="false" data-c="' + esc(c) + '" aria-label="' + esc(c) + '"><b>' + catOf(c).e + '</b>' + esc(SHORT[c] || c) + '</button>').join('');
     $('f-date').max = iso(today);
@@ -825,11 +1027,33 @@
     $('scrim').classList.add('open'); $('sheet').classList.add('open'); $('sheet').setAttribute('aria-hidden', 'false');
     setTimeout(() => $('f-amount').focus(), 250);
   }
-  function closeSheet() { document.activeElement && document.activeElement.blur(); $('scrim').classList.remove('open'); $('sheet').classList.remove('open'); $('sheet').setAttribute('aria-hidden', 'true'); }
-  $('fab').onclick = openSheet;
+  function closeSheet() {
+    document.activeElement && document.activeElement.blur(); $('scrim').classList.remove('open');
+    ['sheet', 'lsheet'].forEach(id => { $(id).classList.remove('open'); $(id).setAttribute('aria-hidden', 'true'); });
+  }
+  // ===== Шторка лимита =====
+  const fmtNum = v => String(v).replace(/\D/g, '').replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  $('lim-edit').onclick = () => {
+    $('l-amount').value = fmtNum(S.settings.weekLimit || '');
+    $('scrim').classList.add('open'); $('lsheet').classList.add('open'); $('lsheet').setAttribute('aria-hidden', 'false');
+  };
+  $('l-close').onclick = closeSheet;
+  $('l-amount').addEventListener('input', () => { $('l-amount').value = fmtNum($('l-amount').value); });
+  $('l-pills').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (b) $('l-amount').value = fmtNum(b.dataset.v); });
+  $('limit-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const v = +$('l-amount').value.replace(/\D/g, '') || 0;
+    $('l-submit').disabled = true;
+    await act({ action: 'settings', weekLimit: v }, v ? 'Лимит: ' + money(v) + ' в неделю' : 'Лимит выключен');
+    $('l-submit').disabled = false;
+    closeSheet();
+  });
+  $('fab').onclick = () => openSheet('expense');
+  $('inc-add').onclick = () => openSheet('income');
+  $('rec-add').onclick = () => openSheet('recurring');
   $('scrim').onclick = closeSheet;
   $('f-close').onclick = closeSheet;
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('sheet').classList.contains('open')) closeSheet(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.sheet.open')) closeSheet(); });
   // сумма: только цифры и одна запятая, разряды через пробел
   $('f-amount').addEventListener('input', () => {
     let v = $('f-amount').value.replace(/[^\d.,]/g, '').replace('.', ',');
@@ -861,8 +1085,11 @@
     const now = new Date();
     const when = +fDay === +today ? now : new Date(fDay.getFullYear(), fDay.getMonth(), fDay.getDate(), 12, 0);
     $('f-submit').disabled = true; $('f-submit').textContent = 'Сохраняю…';
-    await act({ action: 'add', amount: amount, merchant: $('f-merchant').value.trim(), category: fCat, date: when.getTime() }, 'Трата сохранена');
-    $('f-submit').disabled = false; $('f-submit').textContent = 'Сохранить трату';
+    const merchant = $('f-merchant').value.trim();
+    if (fMode === 'income') await act({ action: 'income', amount, merchant, date: when.getTime() }, 'Доход сохранён');
+    else if (fMode === 'recurring') await act({ action: 'recurring', amount, merchant, category: fCat, day: +$('f-day').value }, 'Регулярный платёж добавлен');
+    else await act({ action: 'add', amount, merchant, category: fCat, date: when.getTime() }, 'Трата сохранена');
+    $('f-submit').disabled = false; $('f-submit').textContent = MODE[fMode].btn;
     closeSheet();
   });
 
